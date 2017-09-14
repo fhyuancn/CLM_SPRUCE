@@ -37,7 +37,7 @@ subroutine iniTimeConst
   use pftvarcon   , only : noveg, ntree, roota_par, rootb_par,  &
                            smpso, smpsc, fnitr, nbrdlf_dcd_brl_shrub, &
                            z0mr, displar, dleaf, rhol, rhos, taul, taus, xl, &
-                           c3psn, slatop, dsladlai, leafcn, flnr, woody, &
+                           c3psn, slatop, dsladlai, leafcn, flnr, vcmax25top_gsmean, woody, &
                            lflitcn, frootcn, livewdcn, deadwdcn, froot_leaf, stem_leaf, croot_stem, &
                            flivewd, fcur, lf_flab, lf_fcel, lf_flig, fr_flab, fr_fcel, fr_flig, &
                            leaf_long, evergreen, stress_decid, season_decid, &
@@ -701,6 +701,8 @@ subroutine iniTimeConst
       pftcon%dsladlai(m) = dsladlai(m)
       pftcon%leafcn(m) = leafcn(m)
       pftcon%flnr(m) = flnr(m)
+      !seasonal physiology
+      pftcon%vcmax25top_gsmean(m) = vcmax25top_gsmean(m)
       pftcon%smpso(m) = smpso(m)
       pftcon%smpsc(m) = smpsc(m)
       pftcon%fnitr(m) = fnitr(m)

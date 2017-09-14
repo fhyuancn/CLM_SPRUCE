@@ -1440,6 +1440,11 @@ contains
    real(r8), pointer :: lai_z(:,:)  ! leaf area index for canopy layer, sunlit or shaded
    real(r8), pointer :: par_z(:,:)  ! par absorbed per unit lai for canopy layer (w/m**2)
    real(r8), pointer :: vcmaxcint(:)! leaf to canopy scaling coefficient
+   !seasonal physiology
+   real(r8), pointer :: vcmax25top_gsmean(:)     ! 
+   real(r8), pointer :: jmax25top_gsmean(:)
+   real(r8), pointer :: tpu25top_gsmean(:)
+   real(r8), pointer :: lmr25top_gsmean(:)
 !KO
    real(r8), pointer :: t10(:)      ! 10-day running mean of the 2 m temperature (K)
 !KO

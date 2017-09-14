@@ -727,6 +727,9 @@ contains
     allocate(pftcon%dsladlai(0:numpft))
     allocate(pftcon%leafcn(0:numpft))
     allocate(pftcon%flnr(0:numpft))
+    !seasonal physiology
+    allocate(pftcon%vcmax25top_gsmean(0:numpft))
+
     allocate(pftcon%woody(0:numpft))
     allocate(pftcon%lflitcn(0:numpft))
     allocate(pftcon%frootcn(0:numpft))

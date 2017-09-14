@@ -340,7 +340,9 @@ type, public :: pft_epc_type
    real(r8), pointer :: evergreen(:)    !binary flag for evergreen leaf habit (0 or 1)
    real(r8), pointer :: stress_decid(:) !binary flag for stress-deciduous leaf habit (0 or 1)
    real(r8), pointer :: season_decid(:) !binary flag for seasonal-deciduous leaf habit (0 or 1)
-
+   !Seasonal physiology
+   real(r8), pointer :: vcmax25top_gsmean(:) 
+ 
 !  fire variables added by F. Li and S. Levis
     
   ! combustion completeness factors (0 to 1)
