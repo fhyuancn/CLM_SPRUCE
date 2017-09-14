@@ -81,6 +81,11 @@ module pftvarcon
   real(r8):: grperc(0:mxpft)       !growth respiration parameter
   real(r8):: grpnow(0:mxpft)       !growth respiration parameter
   real(r8):: rootprof_beta(0:mxpft)   !CLM rooting distribution parameter for C and N inputs [unitless]
+  !Seasonal physiology for SPRUCE
+  real(r8):: vcmax25top_gsmean(0:mxpft)       !Growing season mean Vcmax25
+  real(r8):: jmax25top_gsmean(0:mxpft)        !Growing season mean Jmax25
+  real(r8):: tpu25top_gsmean(0:mxpft)         !Growing season mean TPU25
+  real(r8):: lmr25top_gsmean(0:mxpft)         !Growing season mean lmr25
 
 ! for crop
   real(r8):: graincn(0:mxpft)      !grain C:N (gC/gN)
@@ -403,6 +408,9 @@ contains
     call ncd_io('r_mort',r_mort, 'read', ncid, readvar=readv,posNOTonfile=.true.)
     if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
     call ncd_io('lwtop_ann',lwtop_ann, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    !seasonal physiology
+    call ncd_io('vcmax25top_gsmean', vcmax25top_gsmean, 'read', ncid, readvar=readv,posNOTonfile=.true.)
     if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
 
 #if (defined VERTSOILC) || (defined MICROBE)

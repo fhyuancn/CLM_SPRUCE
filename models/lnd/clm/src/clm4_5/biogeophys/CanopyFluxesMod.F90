@@ -1579,7 +1579,13 @@ contains
    real(r8), pointer :: h2o_moss_wc(:)    ! total water content of moss (g water/g dry mass)
    real(r8) :: moss_factor
    real(r8) :: wcscaler                   ! moss water content scalor ( 0 -1.0)
+   ! seasonal physiology
+   logical :: use_measured_gsmean
+   logical :: use_measured_seasonality
 !------------------------------------------------------------------------------
+
+   use_measured_gsmean = .true.
+   use_measured_seasonality = .false.
 
    ! Temperature and soil water response functions
 
@@ -1647,7 +1653,11 @@ contains
    flnr      => pftcon%flnr
    fnitr     => pftcon%fnitr
    slatop    => pftcon%slatop
-
+   !seasonal physiology modifications
+   vcmax25top_gsmean => pftcon%vcmax25top_gsmean
+   jmax25top_gsmean  => pftcon%jmax25top_gsmean
+   tpu25top_gsmean   => pftcon%tpu25top_gsmean
+   lmr25top_gsmean   => pftcon%lmr25top_gsmean
 
    c3flag => ppsyns%c3flag
    ac     => ppsyns%ac
@@ -1815,6 +1825,14 @@ contains
       ! vcmax25 at canopy top, as in CN but using lnc at top of the canopy
 
       vcmax25top = lnc(p) * flnr(ivt(p)) * fnr * act25 * dayl_factor(p)
+      !Seasonal physiology for trees/shrubs (not Sphagnum)
+      if (use_measured_gsmean .and. not ivt(p) == 12) then 
+         vcmax25top = vcmax25top_gsmean(ivt(p))
+      end if
+      if (use_measured_seasonality) then
+         !Some interpolation
+      end if
+
 #ifndef CN
       vcmax25top = vcmax25top * fnitr(ivt(p))
 #else
@@ -1828,7 +1846,10 @@ contains
 !KO
       jmax25top = (2.59_r8 - 0.035_r8*min(max((t10(p)-tfrz),11._r8),35._r8)) * vcmax25top
 !KO
+      !if statements for seasonal physiology here
       tpu25top = 0.167_r8 * vcmax25top
+      !if statements for seasonal physiology here
+
       kp25top = 20000._r8 * vcmax25top
 
       ! Nitrogen scaling factor. Bonan et al (2011) JGR, 116, doi:10.1029/2010JG001593 used
@@ -1863,6 +1884,8 @@ contains
 
 !      lmr25top = 2.525e-6_r8 * (1.5_r8 ** ((25._r8 - 20._r8)/10._r8))
       lmr25top = br_mr  * (q10_mr ** ((25._r8 - 20._r8)/10._r8))
+      !Seasonal physiology here
+
       lmr25top = lmr25top * lnc(p) / 12.e-06_r8
 
 #else
