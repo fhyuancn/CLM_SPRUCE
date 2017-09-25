@@ -81,11 +81,30 @@ module pftvarcon
   real(r8):: grperc(0:mxpft)       !growth respiration parameter
   real(r8):: grpnow(0:mxpft)       !growth respiration parameter
   real(r8):: rootprof_beta(0:mxpft)   !CLM rooting distribution parameter for C and N inputs [unitless]
-  !Seasonal physiology for SPRUCE
-  real(r8):: vcmax25top_gsmean(0:mxpft)       !Growing season mean Vcmax25
-  real(r8):: jmax25top_gsmean(0:mxpft)        !Growing season mean Jmax25
-  real(r8):: tpu25top_gsmean(0:mxpft)         !Growing season mean TPU25
-  real(r8):: lmr25top_gsmean(0:mxpft)         !Growing season mean lmr25
+  !Seasonal physiology for SPRUCE AWK Sept 2017
+  ! growing season
+  real(r8):: vcmax25top_gsmean(0:mxpft)       !Growing season mean Vcmax25 (umol CO2/m**2/s)
+  real(r8):: jmax25top_gsmean(0:mxpft)        !Growing season mean Jmax25  (umol CO2/m**2/s)
+  real(r8):: tpu25top_gsmean(0:mxpft)         !Growing season mean TPU25   (umol CO2/m**2/s)
+  real(r8):: lmr25top_gsmean(0:mxpft)         !Growing season mean lmr25   (umol CO2/m**2/s)
+  ! monthly
+  real(r8):: vcmax25top_jun(0:mxpft)       !June Vcmax25 (umol CO2/m**2/s)
+  real(r8):: vcmax25top_aug(0:mxpft)       !Aug Vcmax25 (umol CO2/m**2/s)
+  real(r8):: vcmax25top_sep(0:mxpft)       !Sept Vcmax25 (umol CO2/m**2/s)
+  real(r8):: vcmax25top_oct(0:mxpft)       !Oct Vcmax25 (umol CO2/m**2/s)
+  real(r8):: jmax25top_jun(0:mxpft)       !June Jmax25 (umol CO2/m**2/s)
+  real(r8):: jmax25top_aug(0:mxpft)       !Aug Jmax25 (umol CO2/m**2/s)
+  real(r8):: jmax25top_sep(0:mxpft)       !Sept Jmax25 (umol CO2/m**2/s)
+  real(r8):: jmax25top_oct(0:mxpft)       !Oct Jmax25 (umol CO2/m**2/s)
+  real(r8):: tpu25top_jun(0:mxpft)       !June TPU25 (umol CO2/m**2/s)
+  real(r8):: tpu25top_aug(0:mxpft)       !Aug TPU25 (umol CO2/m**2/s)
+  real(r8):: tpu25top_sep(0:mxpft)       !Sept TPU25 (umol CO2/m**2/s)
+  real(r8):: tpu25top_oct(0:mxpft)       !Oct TPU25 (umol CO2/m**2/s)
+  real(r8):: lmr25top_jun(0:mxpft)       !June lmr25 (umol CO2/m**2/s)
+  real(r8):: lmr25top_aug(0:mxpft)       !Aug lmr25 (umol CO2/m**2/s)
+  real(r8):: lmr25top_sep(0:mxpft)       !Sept lmr25 (umol CO2/m**2/s)
+  real(r8):: lmr25top_oct(0:mxpft)       !Oct lmr25 (umol CO2/m**2/s)
+  ! AWK
 
 ! for crop
   real(r8):: graincn(0:mxpft)      !grain C:N (gC/gN)
@@ -409,9 +428,49 @@ contains
     if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
     call ncd_io('lwtop_ann',lwtop_ann, 'read', ncid, readvar=readv,posNOTonfile=.true.)
     if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
-    !seasonal physiology
+    !seasonal physiology AWK Sept 2017
     call ncd_io('vcmax25top_gsmean', vcmax25top_gsmean, 'read', ncid, readvar=readv,posNOTonfile=.true.)
     if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('jmax25top_gsmean', jmax25top_gsmean, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('tpu25top_gsmean', tpu25top_gsmean, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('lmr25top_gsmean', lmr25top_gsmean, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    ! monthly
+    call ncd_io('vcmax25top_jun', vcmax25top_jun, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('vcmax25top_aug', vcmax25top_aug, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('vcmax25top_sep', vcmax25top_sep, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('vcmax25top_oct', vcmax25top_oct, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('jmax25top_jun', jmax25top_jun, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('jmax25top_aug', jmax25top_aug, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('jmax25top_sep', jmax25top_sep, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('jmax25top_oct', jmax25top_oct, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('tpu25top_jun', tpu25top_jun, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('tpu25top_aug', tpu25top_aug, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('tpu25top_sep', tpu25top_sep, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('tpu25top_oct', tpu25top_oct, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('lmr25top_jun', lmr25top_jun, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('lmr25top_aug', lmr25top_aug, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('lmr25top_sep', lmr25top_sep, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    call ncd_io('lmr25top_oct', lmr25top_oct, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+    ! AWK
 
 #if (defined VERTSOILC) || (defined MICROBE)
     call ncd_io('rootprof_beta',rootprof_beta, 'read', ncid, readvar=readv, posNOTonfile=.true.)

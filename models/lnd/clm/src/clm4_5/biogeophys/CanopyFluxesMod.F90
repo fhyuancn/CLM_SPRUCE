@@ -1400,6 +1400,9 @@ contains
    use clm_varpar  , only : nlevcan
    use pftvarcon    , only : nbrdlf_dcd_tmp_shrub, mp, br_mr, q10_mr
    use pftvarcon    , only : nsoybean, nsoybeanirrig, npcropmin
+   ! seasonal physiology AWK 9/25/17
+   use clm_time_manager, only get_curr_calday
+   ! AWK
 #if (defined CN)
    use CNAllocationMod, only : CNAllocation_Carbon_only
 #endif
@@ -1440,11 +1443,31 @@ contains
    real(r8), pointer :: lai_z(:,:)  ! leaf area index for canopy layer, sunlit or shaded
    real(r8), pointer :: par_z(:,:)  ! par absorbed per unit lai for canopy layer (w/m**2)
    real(r8), pointer :: vcmaxcint(:)! leaf to canopy scaling coefficient
-   !seasonal physiology
-   real(r8), pointer :: vcmax25top_gsmean(:)     ! 
-   real(r8), pointer :: jmax25top_gsmean(:)
-   real(r8), pointer :: tpu25top_gsmean(:)
-   real(r8), pointer :: lmr25top_gsmean(:)
+   !seasonal physiology AWK Sept 2017
+   integer calday ! day of year (1-366)
+   ! growing season
+   real(r8), pointer :: vcmax25top_gsmean(:) ! growing season mean observed maximum rate of carboxylation at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: jmax25top_gsmean(:)  ! growing season mean observed maximum electron transport rate at 25C (umol electrons/m**2/s)
+   real(r8), pointer :: tpu25top_gsmean(:)   ! growing season mean observed triose phosphate utilization rate at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: lmr25top_gsmean(:)   ! growing season mean observed leaf maintenance respiration rate at 25C (umol CO2/m**2/s)
+   ! monthly
+   real(r8), pointer :: vcmax25top_jun(:)   ! observed June maximum rate of carboxylation at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: vcmax25top_aug(:)   ! observed Aug maximum rate of carboxylation at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: vcmax25top_sep(:)   ! observed Sept maximum rate of carboxylation at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: vcmax25top_oct(:)   ! observed Oct maximum rate of carboxylation at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: jmax25top_jun(:)    ! observed June maximum electron transport rate at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: jmax25top_aug(:)    ! observed Aug maximum electron transport rate at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: jmax25top_sep(:)    ! observed Sept maximum electron transport rate at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: jmax25top_oct(:)    ! observed Oct maximum electron transport rate at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: tpu25top_jun(:)     ! observed June maximum triose phosphate utilization rate at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: tpu25top_aug(:)     ! observed Aug maximum triose phosphate utilization rate at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: tpu25top_sep(:)     ! observed Sept maximum triose phosphate utilization rate at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: tpu25top_oct(:)     ! observed Oct maximum rate of triose phosphate utilization rate (umol CO2/m**2/s)
+   real(r8), pointer :: lmr25top_jun(:)     ! observed June leaf maintenance respiration rate at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: lmr25top_aug(:)     ! observed Aug leaf maintenance respiration rate at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: lmr25top_sep(:)     ! observed Sept leaf maintenance respiration rate at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: lmr25top_oct(:)     ! observed Oct leaf maintenance respiration rate at 25C (umol CO2/m**2/s)
+   ! AWK Sept 2017
 !KO
    real(r8), pointer :: t10(:)      ! 10-day running mean of the 2 m temperature (K)
 !KO
@@ -1584,13 +1607,16 @@ contains
    real(r8), pointer :: h2o_moss_wc(:)    ! total water content of moss (g water/g dry mass)
    real(r8) :: moss_factor
    real(r8) :: wcscaler                   ! moss water content scalor ( 0 -1.0)
-   ! seasonal physiology
+   ! seasonal physiology AWK Sept 2017
    logical :: use_measured_gsmean
    logical :: use_measured_seasonality
+   ! AWK
 !------------------------------------------------------------------------------
 
+   ! seasonal physiology AWK Sept 2017
    use_measured_gsmean = .true.
    use_measured_seasonality = .false.
+   ! AWK
 
    ! Temperature and soil water response functions
 
@@ -1658,11 +1684,30 @@ contains
    flnr      => pftcon%flnr
    fnitr     => pftcon%fnitr
    slatop    => pftcon%slatop
-   !seasonal physiology modifications
+   !seasonal physiology modifications AWK Sept 2017
+   ! growing season
    vcmax25top_gsmean => pftcon%vcmax25top_gsmean
    jmax25top_gsmean  => pftcon%jmax25top_gsmean
    tpu25top_gsmean   => pftcon%tpu25top_gsmean
    lmr25top_gsmean   => pftcon%lmr25top_gsmean
+   ! monthly
+   vcmax25top_jun    => pftcon%vcmax25top_jun
+   vcmax25top_aug    => pftcon%vcmax25top_aug
+   vcmax25top_sep    => pftcon%vcmax25top_sep
+   vcmax25top_oct    => pftcon%vcmax25top_oct
+   jmax25top_jun     => pftcon%jmax25top_jun
+   jmax25top_aug     => pftcon%jmax25top_aug
+   jmax25top_sep     => pftcon%jmax25top_sep
+   jmax25top_oct     => pftcon%jmax25top_oct
+   tpu25top_jun      => pftcon%tpu25top_jun
+   tpu25top_aug      => pftcon%tpu25top_aug
+   tpu25top_sep      => pftcon%tpu25top_sep
+   tpu25top_oct      => pftcon%tpu25top_oct
+   lmr25top_jun      => pftcon%lmr25top_jun
+   lmr25top_aug      => pftcon%lmr25top_aug
+   lmr25top_sep      => pftcon%lmr25top_sep
+   lmr25top_oct      => pftcon%lmr25top_oct
+   ! AWK
 
    c3flag => ppsyns%c3flag
    ac     => ppsyns%ac
@@ -1830,19 +1875,38 @@ contains
       ! vcmax25 at canopy top, as in CN but using lnc at top of the canopy
 
       vcmax25top = lnc(p) * flnr(ivt(p)) * fnr * act25 * dayl_factor(p)
-      !Seasonal physiology for trees/shrubs (not Sphagnum)
-      if (use_measured_gsmean .and. not ivt(p) == 12) then 
-         vcmax25top = vcmax25top_gsmean(ivt(p))
-      end if
-      if (use_measured_seasonality) then
-         !Some interpolation
-      end if
 
 #ifndef CN
       vcmax25top = vcmax25top * fnitr(ivt(p))
 #else
       if ( CNAllocation_Carbon_only() ) vcmax25top = vcmax25top * fnitr(ivt(p))
 #endif
+
+      !Seasonal physiology for trees/shrubs (not Sphagnum) AWK Sept 2017
+      ! observed vcmax are used to override calculated vcmax
+      if (use_measured_gsmean .and. not ivt(p) == 12) then 
+          vcmax25top = vcmax25top_gsmean(ivt(p))
+      end if
+      if (use_measured_seasonality .and. not ivt(p) == 12) then
+          !Some monthly/seasonal interpolation
+          calday = get_curr_calday() ! get day of year
+          select case(calday)
+              case(:166) ! before mid june
+                  vcmax25top = vcmax25top_jun(ivt(p))
+              case(167:227) ! June-Aug
+                  vcmax25top = seasonal_interpolation(calday, 167, 60, vcmax25top_jun(ivt(p)), vcmax25top_aug(ivt(p)))
+              case(228:258) ! Aug-Sept
+                  vcmax25top = seasonal_interpolation(calday, 228, 30, vcmax25top_aug(ivt(p)), vcmax25top_sep(ivt(p)))
+              case(259:288) ! Sept-Oct
+                  vcmax25top = seasonal_interpolation(calday, 259, 29, vcmax25top_sep(ivt(p)), vcmax25top_oct(ivt(p)))
+              case(289:) ! mid Oct or later
+                  vcmax25top = vcmax25top_oct(ivt(p))
+              case default
+                  write (iulog,*) 'Error: calday not recognized in seasonal physiology interpolation'
+                  call endrun()
+          end select
+      end if
+      ! AWK
 
       ! Parameters derived from vcmax25top. Bonan et al (2011) JGR, 116, doi:10.1029/2010JG001593
       ! used jmax25 = 1.97 vcmax25, from Wullschleger (1993) Journal of Experimental Botany 44:907-920.
@@ -1851,9 +1915,56 @@ contains
 !KO
       jmax25top = (2.59_r8 - 0.035_r8*min(max((t10(p)-tfrz),11._r8),35._r8)) * vcmax25top
 !KO
-      !if statements for seasonal physiology here
+      !Seasonal physiology for trees/shrubs (not Sphagnum) AWK 2017
+      ! observed jmax are used to override calculated jmax
+      if (use_measured_gsmean .and. not ivt(p) == 12) then 
+         jmax25top = jmax25top_gsmean(ivt(p))
+      end if
+      if (use_measured_seasonality .and. not ivt(p) == 12) then
+          !Some monthly/seasonal interpolation
+          select case(calday)
+              case(:166) ! before mid june
+                  jmax25top = jmax25top_jun(ivt(p))
+              case(167:227) ! June-Aug
+                  jmax25top = seasonal_interpolation(calday, 167, 60, jmax25top_jun(ivt(p)), jmax25top_aug(ivt(p)))
+              case(228:258) ! Aug-Sept
+                  jmax25top = seasonal_interpolation(calday, 228, 30, jmax25top_aug(ivt(p)), jmax25top_sep(ivt(p)))
+              case(259:288) ! Sept-Oct
+                  jmax25top = seasonal_interpolation(calday, 259, 29, jmax25top_sep(ivt(p)), jmax25top_oct(ivt(p)))
+              case(289:) ! mid Oct or later
+                  jmax25top = jmax25top_oct(ivt(p))
+              case default
+                  write (iulog,*) 'Error: calday not recognized in seasonal physiology interpolation'
+                  call endrun()
+          end select
+      end if
+      ! AWK
+
       tpu25top = 0.167_r8 * vcmax25top
-      !if statements for seasonal physiology here
+      !Seasonal physiology for trees/shrubs (not Sphagnum) AWK Sept 2017
+      ! observed tpu are used to override calculated tpu
+      if (use_measured_gsmean .and. not ivt(p) == 12) then 
+         tpu25top = tpu25top_gsmean(ivt(p))
+      end if
+      if (use_measured_seasonality .and. not ivt(p) == 12) then
+          !Some monthly/seasonal interpolation
+          select case(calday)
+              case(:166) ! before mid june
+                  tpu25top = tpu25top_jun(ivt(p))
+              case(167:227) ! June-Aug
+                  tpu25top = seasonal_interpolation(calday, 167, 60, tpu25top_jun(ivt(p)), tpu25top_aug(ivt(p)))
+              case(228:258) ! Aug-Sept
+                  tpu25top = seasonal_interpolation(calday, 228, 30, tpu25top_aug(ivt(p)), tpu25top_sep(ivt(p)))
+              case(259:288) ! Sept-Oct
+                  tpu25top = seasonal_interpolation(calday, 259, 29, tpu25top_sep(ivt(p)), tpu25top_oct(ivt(p)))
+              case(289:) ! mid Oct or later
+                  tpu25top = tpu25top_oct(ivt(p))
+              case default
+                  write (iulog,*) 'Error: calday not recognized in seasonal physiology interpolation'
+                  call endrun()
+          end select
+      end if
+      ! AWK
 
       kp25top = 20000._r8 * vcmax25top
 
@@ -1889,7 +2000,6 @@ contains
 
 !      lmr25top = 2.525e-6_r8 * (1.5_r8 ** ((25._r8 - 20._r8)/10._r8))
       lmr25top = br_mr  * (q10_mr ** ((25._r8 - 20._r8)/10._r8))
-      !Seasonal physiology here
 
       lmr25top = lmr25top * lnc(p) / 12.e-06_r8
 
@@ -1903,6 +2013,30 @@ contains
       end if
 
 #endif
+      !Seasonal physiology for trees/shrubs (not Sphagnum) AWK Sept 2017
+      ! observed leaf maintenance respiration are used to override calculated leaf maintenance respiration
+      if (use_measured_gsmean .and. not ivt(p) == 12) then 
+         lmr25top = lmr25top_gsmean(ivt(p))
+      end if
+      if (use_measured_seasonality .and. not ivt(p) == 12) then
+          !Some monthly/seasonal interpolation
+          select case(calday)
+              case(:166) ! before mid june
+                  lmr25top = lmr25top_jun(ivt(p))
+              case(167:227) ! June-Aug
+                  lmr25top = seasonal_interpolation(calday, 167, 60, lmr25top_jun(ivt(p)), lmr25top_aug(ivt(p)))
+              case(228:258) ! Aug-Sept
+                  lmr25top = seasonal_interpolation(calday, 228, 30, lmr25top_aug(ivt(p)), lmr25top_sep(ivt(p)))
+              case(259:288) ! Sept-Oct
+                  lmr25top = seasonal_interpolation(calday, 259, 29, lmr25top_sep(ivt(p)), lmr25top_oct(ivt(p)))
+              case(289:) ! mid Oct or later
+                  lmr25top = lmr25top_oct(ivt(p))
+              case default
+                  write (iulog,*) 'Error: calday not recognized in seasonal physiology interpolation'
+                  call endrun()
+          end select
+      end if
+      ! AWK
 
       ! Loop through canopy layers (above snow). Respiration needs to be
       ! calculated every timestep. Others are calculated only if daytime
@@ -2861,5 +2995,42 @@ contains
    end do
 
    end subroutine Fractionation
+   
+!-------------------------------------------------------------------------------
+!AWK
+!
+! !IROUTINE: seasonal_interpolation
+!
+! !INTERFACE:
+
+    function seasonal_interpolation(doy, d0, ndays, parm0, parmn)result(parmd)
+    !
+    !!DESCRIPTION:
+    ! linear interpolation of seasonal photosynthesis parameters 
+    !
+    ! !REVISION HISTORY
+    ! Created Anthony W. King Sept. 12/2017 
+
+    implicit none
+   
+    ! !ARGUMENTS   
+    integer, intent(in) :: doy  ! day of year
+    integer, intent(in) :: d0  ! first day of interpolation period
+    integer, intent(in) :: ndays ! number of days in interpolation period
+    real(r8) intent(in) :: parm0 ! parameter value at beginning of interpolation period
+    real(r8) intent(in) :: parmn ! parameter value at end of interpolation period
+
+! !CALLED FROM:
+! subroutine Photosynthesis in this module
+
+! !LOCAL VARIABLES:   
+   
+    real(r8) :: m     ! change in parameter per day
+    real(r8) :: parmd ! parameter value on day of year
+
+    m = (parmn - parm0)/ndays
+    parmd = parm0 + m * (doy - d0)
+    return
+    end function seasonal_interpolation
 
 end module CanopyFluxesMod

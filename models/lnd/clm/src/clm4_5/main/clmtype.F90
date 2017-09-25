@@ -340,8 +340,30 @@ type, public :: pft_epc_type
    real(r8), pointer :: evergreen(:)    !binary flag for evergreen leaf habit (0 or 1)
    real(r8), pointer :: stress_decid(:) !binary flag for stress-deciduous leaf habit (0 or 1)
    real(r8), pointer :: season_decid(:) !binary flag for seasonal-deciduous leaf habit (0 or 1)
-   !Seasonal physiology
-   real(r8), pointer :: vcmax25top_gsmean(:) 
+   ! Seasonal physiology AWK Sept 2017
+   ! growing season
+   real(r8), pointer :: vcmax25top_gsmean(:) ! growing season mean observed maximum rate of carboxylation at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: jmax25top_gsmean(:)  ! growing season mean observed maximum electron transport rate at 25C (umol electrons/m**2/s) 
+   real(r8), pointer :: tpu25top_gsmean(:)   ! growing season mean observed triose phosphate utilization rate at 25C (umol CO2/m**2/s) 
+   real(r8), pointer :: lmr25top_gsmean(:)   ! growing season mean observed leaf maintenance respiration rate at 25C (umol CO2/m**2/s) 
+   ! monthly
+   real(r8), pointer :: vcmax25top_jun(:) ! June observed maximum rate of carboxylation at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: vcmax25top_aug(:) ! Aug observed maximum rate of carboxylation at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: vcmax25top_sep(:) ! Sept observed maximum rate of carboxylation at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: vcmax25top_oct(:) ! Oct observed maximum rate of carboxylation at 25C (umol CO2/m**2/s)
+   real(r8), pointer :: jmax25top_jun(:)  ! June observed maximum electron transport rate at 25C (umol electrons/m**2/s) 
+   real(r8), pointer :: jmax25top_aug(:)  ! Aug observed maximum electron transport rate at 25C (umol electrons/m**2/s) 
+   real(r8), pointer :: jmax25top_sep(:)  ! Sept observed maximum electron transport rate at 25C (umol electrons/m**2/s) 
+   real(r8), pointer :: jmax25top_oct(:)  ! Oct observed maximum electron transport rate at 25C (umol electrons/m**2/s) 
+   real(r8), pointer :: tpu25top_jun(:)   ! June observed triose phosphate utilization rate at 25C (umol CO2/m**2/s) 
+   real(r8), pointer :: tpu25top_aug(:)   ! Aug observed triose phosphate utilization rate at 25C (umol CO2/m**2/s) 
+   real(r8), pointer :: tpu25top_sep(:)   ! Sept observed triose phosphate utilization rate at 25C (umol CO2/m**2/s) 
+   real(r8), pointer :: tpu25top_oct(:)   ! Oct observed triose phosphate utilization rate at 25C (umol CO2/m**2/s) 
+   real(r8), pointer :: lmr25top_jun(:)   ! June observed leaf maintenance respiration rate at 25C (umol CO2/m**2/s) 
+   real(r8), pointer :: lmr25top_aug(:)   ! Aug observed leaf maintenance respiration rate at 25C (umol CO2/m**2/s) 
+   real(r8), pointer :: lmr25top_sep(:)   ! Sept observed leaf maintenance respiration rate at 25C (umol CO2/m**2/s) 
+   real(r8), pointer :: lmr25top_oct(:)   ! Oct observed leaf maintenance respiration rate at 25C (umol CO2/m**2/s) 
+   ! AWK
  
 !  fire variables added by F. Li and S. Levis
     

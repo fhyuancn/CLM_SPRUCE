@@ -727,9 +727,30 @@ contains
     allocate(pftcon%dsladlai(0:numpft))
     allocate(pftcon%leafcn(0:numpft))
     allocate(pftcon%flnr(0:numpft))
-    !seasonal physiology
+    !seasonal physiology AWK Sept 2017
+    ! growing season
     allocate(pftcon%vcmax25top_gsmean(0:numpft))
-
+    allocate(pftcon%jmax25top_gsmean(0:numpft))
+    allocate(pftcon%tpu25top_gsmean(0:numpft))
+    allocate(pftcon%lmr25top_gsmean(0:numpft))
+    ! monthly
+    allocate(pftcon%vcmax25top_jun(0:numpft))
+    allocate(pftcon%vcmax25top_aug(0:numpft))
+    allocate(pftcon%vcmax25top_sep(0:numpft))
+    allocate(pftcon%vcmax25top_oct(0:numpft))
+    allocate(pftcon%jmax25top_jun(0:numpft))
+    allocate(pftcon%jmax25top_aug(0:numpft))
+    allocate(pftcon%jmax25top_sep(0:numpft))
+    allocate(pftcon%jmax25top_oct(0:numpft))
+    allocate(pftcon%tpu25top_jun(0:numpft))
+    allocate(pftcon%tpu25top_aug(0:numpft))
+    allocate(pftcon%tpu25top_sep(0:numpft))
+    allocate(pftcon%tpu25top_oct(0:numpft))
+    allocate(pftcon%lmr25top_jun(0:numpft))
+    allocate(pftcon%lmr25top_aug(0:numpft))
+    allocate(pftcon%lmr25top_sep(0:numpft))
+    allocate(pftcon%lmr25top_oct(0:numpft))
+    ! AWK
     allocate(pftcon%woody(0:numpft))
     allocate(pftcon%lflitcn(0:numpft))
     allocate(pftcon%frootcn(0:numpft))
@@ -779,6 +800,30 @@ contains
     pftcon%dsladlai(:) = nan
     pftcon%leafcn(:) = nan
     pftcon%flnr(:) = nan
+    ! seasonal physiology AWK 9/21/17
+    ! growing season
+    pftcon%vcmax25top_gsmean = nan
+    pftcon%jmax25top_gsmean = nan
+    pftcon%tpu25top_gsmean = nan
+    pftcon%lmr25top_gsmean = nan
+    ! monthly
+    pftcon%vcmax25top_jun = nan
+    pftcon%vcmax25top_aug = nan
+    pftcon%vcmax25top_sep = nan
+    pftcon%vcmax25top_oct = nan
+    pftcon%jmax25top_jun = nan
+    pftcon%jmax25top_aug = nan
+    pftcon%jmax25top_sep = nan
+    pftcon%jmax25top_oct = nan
+    pftcon%tpu25top_jun = nan
+    pftcon%tpu25top_aug = nan
+    pftcon%tpu25top_sep = nan
+    pftcon%tpu25top_oct = nan
+    pftcon%lmr25top_jun = nan
+    pftcon%lmr25top_aug = nan
+    pftcon%lmr25top_sep = nan
+    pftcon%lmr25top_oct = nan
+    ! AWK
     pftcon%woody(:) = nan
     pftcon%lflitcn(:) = nan
     pftcon%frootcn(:) = nan

@@ -34,11 +34,19 @@ subroutine iniTimeConst
   use clm_varctl  , only : fsurdat,scmlon,scmlat,single_column
   use clm_varctl  , only : iulog
   use clm_varsur  , only : pctspec
+  ! seasonal physiology AWK 
+  ! added vcmax25top_gsmean etc 9/21/17
+  ! added vcmax25top_jun etc 9/25/17
   use pftvarcon   , only : noveg, ntree, roota_par, rootb_par,  &
                            smpso, smpsc, fnitr, nbrdlf_dcd_brl_shrub, &
                            z0mr, displar, dleaf, rhol, rhos, taul, taus, xl, &
-                           c3psn, slatop, dsladlai, leafcn, flnr, vcmax25top_gsmean, woody, &
-                           lflitcn, frootcn, livewdcn, deadwdcn, froot_leaf, stem_leaf, croot_stem, &
+                           c3psn, slatop, dsladlai, leafcn, flnr, &
+                           vcmax25top_gsmean, jmax25top_gsmean, tpu25top_gsmean, lmr25top_gsmean &
+                           vcmax25top_jun, jmax25top_jun, tpu25top_jun, lmr25top_jun &
+                           vcmax25top_aug, jmax25top_aug, tpu25top_aug, lmr25top_aug &
+                           vcmax25top_sep, jmax25top_sep, tpu25top_sep, lmr25top_sep &
+                           vcmax25top_oct, jmax25top_oct, tpu25top_oct, lmr25top_oct &
+                           woody, lflitcn, frootcn, livewdcn, deadwdcn, froot_leaf, stem_leaf, croot_stem, &
                            flivewd, fcur, lf_flab, lf_fcel, lf_flig, fr_flab, fr_fcel, fr_flig, &
                            leaf_long, evergreen, stress_decid, season_decid, &
                            pftpar20, pftpar28, pftpar29, pftpar30, pftpar31, &
@@ -701,8 +709,30 @@ subroutine iniTimeConst
       pftcon%dsladlai(m) = dsladlai(m)
       pftcon%leafcn(m) = leafcn(m)
       pftcon%flnr(m) = flnr(m)
-      !seasonal physiology
+      !seasonal physiology AWK Sept 2017
+      ! growing season
       pftcon%vcmax25top_gsmean(m) = vcmax25top_gsmean(m)
+      pftcon%jmax25top_gsmean(m) = jmax25top_gsmean(m)
+      pftcon%tpu25top_gsmean(m) = tpu25top_gsmean(m)
+      pftcon%lmr25top_gsmean(m) = lmr25top_gsmean(m)
+      ! monthly
+      pftcon%vcmax25top_jun(m) = vcmax25top_jun(m)
+      pftcon%vcmax25top_aug(m) = vcmax25top_aug(m)
+      pftcon%vcmax25top_sep(m) = vcmax25top_sep(m)
+      pftcon%vcmax25top_oct(m) = vcmax25top_oct(m)
+      pftcon%jmax25top_jun(m) = jmax25top_jun(m)
+      pftcon%jmax25top_aug(m) = jmax25top_aug(m)
+      pftcon%jmax25top_sep(m) = jmax25top_sep(m)
+      pftcon%jmax25top_oct(m) = jmax25top_oct(m)
+      pftcon%tpu25top_jun(m) = tpu25top_jun(m)
+      pftcon%tpu25top_aug(m) = tpu25top_aug(m)
+      pftcon%tpu25top_sep(m) = tpu25top_sep(m)
+      pftcon%tpu25top_oct(m) = tpu25top_oct(m)
+      pftcon%lmr25top_jun(m) = lmr25top_jun(m)
+      pftcon%lmr25top_aug(m) = lmr25top_aug(m)
+      pftcon%lmr25top_sep(m) = lmr25top_sep(m)
+      pftcon%lmr25top_oct(m) = lmr25top_oct(m)
+      ! AWK
       pftcon%smpso(m) = smpso(m)
       pftcon%smpsc(m) = smpsc(m)
       pftcon%fnitr(m) = fnitr(m)
