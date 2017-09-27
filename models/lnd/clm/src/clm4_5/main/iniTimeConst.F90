@@ -41,11 +41,11 @@ subroutine iniTimeConst
                            smpso, smpsc, fnitr, nbrdlf_dcd_brl_shrub, &
                            z0mr, displar, dleaf, rhol, rhos, taul, taus, xl, &
                            c3psn, slatop, dsladlai, leafcn, flnr, &
-                           vcmax25top_gsmean, jmax25top_gsmean, tpu25top_gsmean, lmr25top_gsmean &
-                           vcmax25top_jun, jmax25top_jun, tpu25top_jun, lmr25top_jun &
-                           vcmax25top_aug, jmax25top_aug, tpu25top_aug, lmr25top_aug &
-                           vcmax25top_sep, jmax25top_sep, tpu25top_sep, lmr25top_sep &
-                           vcmax25top_oct, jmax25top_oct, tpu25top_oct, lmr25top_oct &
+                           vcmax25top_gsmean, jmax25top_gsmean, tpu25top_gsmean, lmr25top_gsmean, &
+                           vcmax25top_jun, jmax25top_jun, tpu25top_jun, lmr25top_jun, &
+                           vcmax25top_aug, jmax25top_aug, tpu25top_aug, lmr25top_aug, &
+                           vcmax25top_sep, jmax25top_sep, tpu25top_sep, lmr25top_sep, &
+                           vcmax25top_oct, jmax25top_oct, tpu25top_oct, lmr25top_oct, &
                            woody, lflitcn, frootcn, livewdcn, deadwdcn, froot_leaf, stem_leaf, croot_stem, &
                            flivewd, fcur, lf_flab, lf_fcel, lf_flig, fr_flab, fr_fcel, fr_flig, &
                            leaf_long, evergreen, stress_decid, season_decid, &

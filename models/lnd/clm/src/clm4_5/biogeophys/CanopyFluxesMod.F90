@@ -1005,8 +1005,8 @@ contains
          if(ivt(p) == 12) then    
             !DMRicciuto 12/4/2015 - changed to use average of layer 3 and 4 
             h2o_moss_inter(p) = -18032 * ((h2osoi_vol(c,3)+h2osoi_vol(c,4))/2._r8)**4 +  &
-                                7248.1 * ((h2osoi_vol(c,3)+h2osoi_vol(c,4))/2._r8)**3 +  &
-                               -591.74 * ((h2osoi_vol(c,3)+h2osoi_vol(c,4))/2._r8)**2 +  & 
+                                7248.1 * ((h2osoi_vol(c,3)+h2osoi_vol(c,4))/2._r8)**3 -  &
+                                591.74 * ((h2osoi_vol(c,3)+h2osoi_vol(c,4))/2._r8)**2 +  & 
                                 6.9031 * ((h2osoi_vol(c,3)+h2osoi_vol(c,4))/2._r8)       &
                                 + 0.4945
             !if (h2o_moss_inter(p).lt.0._r8) h2o_moss_inter(p) = 0._r8
@@ -1401,7 +1401,7 @@ contains
    use pftvarcon    , only : nbrdlf_dcd_tmp_shrub, mp, br_mr, q10_mr
    use pftvarcon    , only : nsoybean, nsoybeanirrig, npcropmin
    ! seasonal physiology AWK 9/25/17
-   use clm_time_manager, only get_curr_calday
+   use clm_time_manager, only : get_curr_calday
    ! AWK
 #if (defined CN)
    use CNAllocationMod, only : CNAllocation_Carbon_only
@@ -1613,16 +1613,16 @@ contains
    ! AWK
 !------------------------------------------------------------------------------
 
-   ! seasonal physiology AWK Sept 2017
-   use_measured_gsmean = .true.
-   use_measured_seasonality = .false.
-   ! AWK
-
    ! Temperature and soil water response functions
-
    ft(tl,ha) = exp( ha / (rgas*1.e-3_r8*(tfrz+25._r8)) * (1._r8 - (tfrz+25._r8)/tl) )
    fth(tl,hd,se,cc) = cc / ( 1._r8 + exp( (-hd+se*tl) / (rgas*1.e-3_r8*tl) ) )
    fth25(hd,se) = 1._r8 + exp( (-hd+se*(tfrz+25._r8)) / (rgas*1.e-3_r8*(tfrz+25._r8)) )
+
+   ! seasonal physiology AWK Sept 2017
+   use_measured_gsmean = .false.
+   use_measured_seasonality = .true.
+   ! AWK
+
 
    ! Assign local pointers to derived type members (gridcell-level)
    forc_pbot => clm_a2l%forc_pbot
@@ -1884,10 +1884,10 @@ contains
 
       !Seasonal physiology for trees/shrubs (not Sphagnum) AWK Sept 2017
       ! observed vcmax are used to override calculated vcmax
-      if (use_measured_gsmean .and. not ivt(p) == 12) then 
+      if (use_measured_gsmean .and. .not. ivt(p) == 12) then 
           vcmax25top = vcmax25top_gsmean(ivt(p))
       end if
-      if (use_measured_seasonality .and. not ivt(p) == 12) then
+      if (use_measured_seasonality .and. .not. ivt(p) == 12) then
           !Some monthly/seasonal interpolation
           calday = get_curr_calday() ! get day of year
           select case(calday)
@@ -1917,10 +1917,10 @@ contains
 !KO
       !Seasonal physiology for trees/shrubs (not Sphagnum) AWK 2017
       ! observed jmax are used to override calculated jmax
-      if (use_measured_gsmean .and. not ivt(p) == 12) then 
+      if (use_measured_gsmean .and. .not. ivt(p) == 12) then 
          jmax25top = jmax25top_gsmean(ivt(p))
       end if
-      if (use_measured_seasonality .and. not ivt(p) == 12) then
+      if (use_measured_seasonality .and. .not. ivt(p) == 12) then
           !Some monthly/seasonal interpolation
           select case(calday)
               case(:166) ! before mid june
@@ -1943,10 +1943,10 @@ contains
       tpu25top = 0.167_r8 * vcmax25top
       !Seasonal physiology for trees/shrubs (not Sphagnum) AWK Sept 2017
       ! observed tpu are used to override calculated tpu
-      if (use_measured_gsmean .and. not ivt(p) == 12) then 
+      if (use_measured_gsmean .and. .not. ivt(p) == 12) then 
          tpu25top = tpu25top_gsmean(ivt(p))
       end if
-      if (use_measured_seasonality .and. not ivt(p) == 12) then
+      if (use_measured_seasonality .and. .not. ivt(p) == 12) then
           !Some monthly/seasonal interpolation
           select case(calday)
               case(:166) ! before mid june
@@ -2015,10 +2015,10 @@ contains
 #endif
       !Seasonal physiology for trees/shrubs (not Sphagnum) AWK Sept 2017
       ! observed leaf maintenance respiration are used to override calculated leaf maintenance respiration
-      if (use_measured_gsmean .and. not ivt(p) == 12) then 
+      if (use_measured_gsmean .and. .not. ivt(p) == 12) then 
          lmr25top = lmr25top_gsmean(ivt(p))
       end if
-      if (use_measured_seasonality .and. not ivt(p) == 12) then
+      if (use_measured_seasonality .and. .not. ivt(p) == 12) then
           !Some monthly/seasonal interpolation
           select case(calday)
               case(:166) ! before mid june
@@ -3011,14 +3011,16 @@ contains
     ! !REVISION HISTORY
     ! Created Anthony W. King Sept. 12/2017 
 
+    use shr_kind_mod       , only : r8 => shr_kind_r8
+
     implicit none
-   
+
     ! !ARGUMENTS   
-    integer, intent(in) :: doy  ! day of year
-    integer, intent(in) :: d0  ! first day of interpolation period
-    integer, intent(in) :: ndays ! number of days in interpolation period
-    real(r8) intent(in) :: parm0 ! parameter value at beginning of interpolation period
-    real(r8) intent(in) :: parmn ! parameter value at end of interpolation period
+    integer,  intent(in) :: doy  ! day of year
+    integer,  intent(in) :: d0  ! first day of interpolation period
+    integer,  intent(in) :: ndays ! number of days in interpolation period
+    real(r8), intent(in) :: parm0 ! parameter value at beginning of interpolation period
+    real(r8), intent(in) :: parmn ! parameter value at end of interpolation period
 
 ! !CALLED FROM:
 ! subroutine Photosynthesis in this module
