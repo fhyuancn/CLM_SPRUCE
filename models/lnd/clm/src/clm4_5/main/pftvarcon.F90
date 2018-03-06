@@ -155,6 +155,10 @@ module pftvarcon
   real(r8):: q10_mr
   real(r8):: r_mort
   real(r8):: lwtop_ann
+  ! Hummock-hollow spatial parameters
+  real(r8):: hol_frac
+  real(r8):: humhol_height
+  real(r8):: humhol_dist
 
   ! pft parameters for CNDV code
   ! from LPJ subroutine pftparameters
@@ -404,7 +408,12 @@ contains
     if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
     call ncd_io('lwtop_ann',lwtop_ann, 'read', ncid, readvar=readv,posNOTonfile=.true.)
     if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
-
+    call ncd_io('hol_frac',hol_frac, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+   call ncd_io('humhol_height',humhol_height, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+   call ncd_io('humhol_dist',humhol_dist, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
 #if (defined VERTSOILC) || (defined MICROBE)
     call ncd_io('rootprof_beta',rootprof_beta, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )

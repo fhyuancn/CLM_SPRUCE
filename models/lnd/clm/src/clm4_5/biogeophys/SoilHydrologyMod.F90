@@ -419,7 +419,7 @@ contains
     use clm_varpar      , only : nlevsoi
     use H2OSfcMod       , only : FracH2oSfc
     use shr_const_mod   , only : shr_const_pi
-    use pftvarcon       , only : qflx_h2osfc_surfrate
+    use pftvarcon       , only : qflx_h2osfc_surfrate, humhol_height, humhol_dist, hol_frac
 #if (defined VICHYDRO)
     use clm_varpar      , only : nlayer, nlayert
 #endif
@@ -538,7 +538,7 @@ contains
     !real(r8) :: h2osoi_vol                 !
     ! variables for HUM_HOL
      real(r8) :: dzmm(lbc:ubc,1:nlevsoi)   ! layer thickness (mm)
-     real(r8) :: hum_frac, hol_frac
+     real(r8) :: hum_frac
     real(r8) :: ka_ho
     real(r8) :: ka_hu
     real(r8) :: zwt_ho, zwt_hu
@@ -672,8 +672,7 @@ contains
 
           !1. partition surface inputs between soil and h2osfc
 #if (defined HUM_HOL)
-          hum_frac = 0.75_r8
-          hol_frac = 0.25_r8
+          hum_frac = (1.0 - hol_frac)
  
           if (c .eq. 1) then
             qflx_surf_input(1) = 0._r8            !hummock
@@ -829,9 +828,9 @@ contains
               !turn off lateral transport if any ice is present
               qflx_lat_aqu(:) = 0._r8
             else
-              qflx_lat_aqu(1) =  2._r8/(1._r8/ka_hu+1._r8/ka_ho) *  (zwt_hu-zwt_ho-0.3_r8) / 1._r8 * &
+              qflx_lat_aqu(1) =  2._r8/(1._r8/ka_hu+1._r8/ka_ho) *  (zwt_hu-zwt_ho-humhol_height) / humhol_dist * &
                  sqrt(hol_frac/hum_frac)
-              qflx_lat_aqu(2) = -2._r8/(1._r8/ka_hu+1._r8/ka_ho) *  (zwt_hu-zwt_ho-0.3_r8) / 1._r8 * &
+              qflx_lat_aqu(2) = -2._r8/(1._r8/ka_hu+1._r8/ka_ho) *  (zwt_hu-zwt_ho-humhol_height) / humhol_dist * &
                  sqrt(hum_frac/hol_frac)
             endif
           endif
@@ -1532,7 +1531,7 @@ contains
     use clm_time_manager, only : get_step_size
     use clm_varcon  , only : pondmx, tfrz, icol_roof, icol_road_imperv, icol_road_perv, watmin,isturb,rpi
     use clm_varpar  , only : nlevsoi,nlevgrnd
-    use pftvarcon   , only : rsub_top_max
+    use pftvarcon   , only : rsub_top_max, humhol_height, humhol_dist, hol_frac
 
 #if (defined VICHYDRO)
     use clm_varcon  , only : secspday,nlvic
@@ -2144,10 +2143,10 @@ contains
        else           !hollow
          if (zwt(c) < 0.4) then
            if (zwt(c) .lt. 0.017) then
-             rsub_top(c)    = imped * rsub_top_max* exp(-fff(c)*(zwt(c)+0.3)-h2osfc(c)/1000.) - &
+             rsub_top(c)    = imped * rsub_top_max* exp(-fff(c)*(zwt(c)+humhol_height)-h2osfc(c)/1000.) - &
                imped * rsub_top_max * exp(-fff(c)*0.7_r8)
            else
-             rsub_top(c)    = imped * rsub_top_max* exp(-fff(c)*(zwt(c)+0.3)) - &
+             rsub_top(c)    = imped * rsub_top_max* exp(-fff(c)*(zwt(c)+humhol_height)) - &
                imped * rsub_top_max * exp(-fff(c)*0.7_r8)
            end if
          else
