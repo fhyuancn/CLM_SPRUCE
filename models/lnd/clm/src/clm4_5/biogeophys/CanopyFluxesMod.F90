@@ -1443,6 +1443,21 @@ contains
 !KO
    real(r8), pointer :: t10(:)      ! 10-day running mean of the 2 m temperature (K)
 !KO
+!AWKing
+   real(r8), pointer :: lmr_intercept_atkin(:) ! intercept of leaf maint. resp. as in CLM5.0 (umol CO2/m**2/s)
+   real(r8), pointer :: arrhenius_ea(:)   ! energy of activation in Arrhenius function (J/mol)
+   real(r8), pointer :: heskel_a(:)       ! parameter a in Heskel et al. 2016 temperature response function
+   real(r8), pointer :: heskel_b(:)       ! parameter b in Heskel et al. 2016 temperature response function
+   real(r8), pointer :: heskel_c(:)       ! parameter c in Heskel et al. 2016 temperature response function
+   real(r8), pointer :: amthor_alphar(:)  ! parameter in Amthor (unpublished) temperature response function
+   real(r8), pointer :: amthor_temp_ad(:) ! temperature to which PFT is adapted in Amthor (unpublished) temperature response function
+   real(r8), pointer :: lloydtaylor_t0(:) ! T0 parameter in Lloyd and Taylor 1994 temp. response function (K)
+   real(r8), pointer :: lloydtaylor_e0(:) ! E0 parameter in Lloyd and Taylor 1994 temp. response function (K)
+   real(r8), pointer :: vq10_a(:)         ! parameter in variable Q10 temperature response function 
+   real(r8), pointer :: vq10_b(:)         ! parameter in variable Q10 temperature response function 
+   real(r8), pointer :: atkin_a(:)        ! parameter in Atkin et al. 2015 variable Q10 temperature response function 
+   real(r8), pointer :: atkin_b(:)        ! parameter in Atkin et al. 2015 variable Q10 temperature response function 
+!AWKing
 
    !!! C13
    real(r8), pointer :: alphapsn(:) ! 13C fractionation factor for PSN ()
@@ -1579,6 +1594,33 @@ contains
    real(r8), pointer :: h2o_moss_wc(:)    ! total water content of moss (g water/g dry mass)
    real(r8) :: moss_factor
    real(r8) :: wcscaler                   ! moss water content scalor ( 0 -1.0)
+   ! AWKing
+   ! variables/functions related to selectable leaf maint. resp.
+   character(len=15) :: resp_temp_function = 'q10'
+   ! Choices are:
+   ! clm4.5: as the default in CLM4.5
+   ! clm5.0: as the atkin intercept option in CLM5.0
+   ! q10: fixed Q10 as the default in ELM-SPRUCE
+   ! heskel: as represented by Heskel et al. 2016 PNAS 113
+   ! amthor: as represented by Amthor (unpublished)
+   ! amthor_acclim: as represented by Amthor with acclimation (unpublished)
+   ! arrhenius: as classic Arrhenius function
+   ! atkin: as represented by Atkin et al. 2015
+   ! lloydtaylor: as represented by Lloyd and Taylor
+   ! variable_q10: temperature dependent Q10 as in Heskel et al. 2016 PNAS 113
+   ! modified atkin: a slight modification of variable Q10 formulation 
+   !
+   real(r8) :: trf                    ! temperature response function/factor (0-1.0)
+   real(r8) :: heskel_ref_respiration ! function: leaf maint. resp. at ref. temp (umol CO2/m**2/s)
+   real(r8) :: q10_response           ! fixed Q10 temperature response function
+   real(r8) :: arrhenius              ! Arrhenius temperature response function
+   real(r8) :: heskel_temp_response   ! according to Heskel et al. 2016 PNAS 113
+   real(r8) :: amthor_rstar           ! as represented by Amthor (unpublished)
+   real(r8) :: amthor_rstar_acclim    ! as represented by Amthor (unpublished) with acclimation
+   real(r8) :: lloydtaylor            ! Lloyd and Taylor 1994 Functional Ecology temp. response function
+   real(r8) :: variable_q10           ! temperature variable q10 temperature response function
+   real(r8) :: atkin                  ! temperature dependent Q10 temp. resp. fnct. following Atkin et al. 2015
+   real(r8) :: modified_atkin         ! modified temperature dependent Q10 temp. resp. fnct. following Atkin et al. 2015
 !------------------------------------------------------------------------------
 
    ! Temperature and soil water response functions
@@ -1647,7 +1689,22 @@ contains
    flnr      => pftcon%flnr
    fnitr     => pftcon%fnitr
    slatop    => pftcon%slatop
-
+!AWKing May 2018
+   ! for alternative leaf maint. resp.
+   lmr_intercept_atkin => pftcon%lmr_intercept_atkin
+   arrhenius_ea        => pftcon%arrhenius_ea
+   heskel_a            => pftcon%heskel_a
+   heskel_b            => pftcon%heskel_b
+   heskel_c            => pftcon%heskel_c
+   amthor_alphar       => pftcon%amthor_alphar
+   amthor_temp_ad      => pftcon%amthor_temp_ad
+   lloydtaylor_t0      => pftcon%lloydtaylor_t0
+   lloydtaylor_e0      => pftcon%lloydtaylor_e0
+   vq10_a              => pftcon%vq10_a
+   vq10_b              => pftcon%vq10_b
+   atkin_a             => pftcon%atkin_a
+   atkin_b             => pftcon%atkin_b
+!AWKing May 2018
 
    c3flag => ppsyns%c3flag
    ac     => ppsyns%ac
@@ -1862,8 +1919,26 @@ contains
 
 
 !      lmr25top = 2.525e-6_r8 * (1.5_r8 ** ((25._r8 - 20._r8)/10._r8))
-      lmr25top = br_mr  * (q10_mr ** ((25._r8 - 20._r8)/10._r8))
-      lmr25top = lmr25top * lnc(p) / 12.e-06_r8
+      !
+      ! selection of temperature response function
+      ! for leaf maintenance respiration at 25C at top of canopy
+      ! AWKing May 2018
+      select case (resp_temp_function)
+         case('clm4.5')
+              lmr25top = 2.525e-6_r8 * (1.5_r8 ** ((25._r8 - 20._r8)/10._r8))
+              lmr25top = lmr25top * lnc(p) / 12.e-6_r8
+         case('clm5.0')
+              if ( lnc(p) > 0.0_r8 ) then
+                  lmr25top = lmr_intercept_atkin(ivt(p)) + (lnc(p) * 0.2061_r8) - (0.0402_r8 * t10(p)-tfrz)
+              else:
+                  lmr25top = 0.0_r8
+              end if
+         case('heskel')
+              lmr25top = heskel_ref_respiration(298.15, heskel_a(ivt(p)), heskel_b(ivt(p)), heskel_c(ivt(p)))
+         case default
+              lmr25top = br_mr  * (q10_mr ** ((25._r8 - 20._r8)/10._r8))
+              lmr25top = lmr25top * lnc(p) / 12.e-06_r8
+      end select
 
 #else
       ! Leaf maintenance respiration in proportion to vcmax25top
@@ -1908,8 +1983,55 @@ contains
          !   lmr_z(p,iv) = lmr25 * 2._r8**((t_veg(p)-(tfrz+25._r8))/10._r8)
          !   lmr_z(p,iv) = lmr_z(p,iv) / (1._r8 + exp( 1.3_r8*(t_veg(p)-(tfrz+55._r8)) ))
          !end if
-         !Return to simple Q10 relationship
-         lmr_z(p,iv) = lmr25 * q10_mr ** ((t_veg(p)-(tfrz+25._r8))/10._r8)
+         !
+         !AWKing
+         select case(resp_temp_function) ! selection of temperature response function for leaf maint. resp.
+            case('clm4.5')
+                 if (c3flag(p)) then
+                    lmr_z(p,iv) = lmr25 * ft(t_veg(p), lmrha) * fth(t_veg(p), lmrhd, lmrse, lmrc)
+                 else
+                    lmr_z(p,iv) = lmr25 * 2._r8**((t_veg(p)-(tfrz+25._r8))/10._r8)
+                    lmr_z(p,iv) = lmr_z(p,iv) / (1._r8 + exp( 1.3_r8*(t_veg(p)-(tfrz+55._r8)) ))
+                 end if
+            case('clm5.0')
+                 if (c3flag(p)) then
+                    lmr_z(p,iv) = lmr25 * ft(t_veg(p), lmrha) * fth(t_veg(p), lmrhd, lmrse, lmrc)
+                 else
+                    lmr_z(p,iv) = lmr25 * 2._r8**((t_veg(p)-(tfrz+25._r8))/10._r8)
+                    lmr_z(p,iv) = lmr_z(p,iv) / (1._r8 + exp( 1.3_r8*(t_veg(p)-(tfrz+55._r8)) ))
+                 end if
+            case('q10')
+                 trf = q10_response(298.15, q10_mr, t_veg(p))
+                 lmr_z(p,iv) = lmr25 * trf
+            case('arrhenius')
+                 trf = arrhenius(298.15, arrhenius_ea(ivt(p)), tveg(p))
+                 lmr_z(p,iv) = lmr25 * trf
+            case('heskel')
+                 trf = heskel_temp_response(298.15, heskel_b(ivt(p)), heskel_c(ivt(p)), t_veg(p))
+                 lmr_z(p,iv) = lmr25 * trf
+            case('amthor')
+                 trf = amthor_rtar(t_veg(p))
+                 lmr_z(p,iv) = lmr25 * trf
+            case('amthor_acclim')
+                 trf = amthor_rtar_acclim(amthor_temp_ad(ivt(p)), t10(p), amthor_alphar(ivt(p)), t_veg(p))
+                 lmr_z(p,iv) = lmr25 * trf
+            case('lloydtaylor')
+                 trf = lloydtaylor(lloydtaylor_t0(ivt(p)), lloydtaylor_e0(ivt(p)), t_veg(p)) / &
+                       lloydtaylor(lloydtaylor_t0(ivt(p)), lloydtaylor_e0(ivt(p)), 298.15_r8)
+                 lmr_z(p,iv) = lmr25 * trf
+            case('variableq10')
+                 trf = variable_q10(298.15, vq10_a(ivt(p)), vq10_b(ivt(p)), t_veg(p))
+                 lmr_z(p,iv) = lmr25 * trf
+            case('atkin')
+                trf = atkin(298.15, atkin_a(ivt(p)), atkin_b(ivt(p)), t_veg(p))
+                lmr_z = lmr25 * trf
+            case('modified_atkin')
+                trf = modified_atkin(298.15, atkin_a(ivt(p)), atkin_b(ivt(p)), t_veg(p))
+                lmr_z = lmr25 * trf
+            case default
+                 !Return to simple Q10 relationship
+                 lmr_z(p,iv) = lmr25 * q10_mr ** ((t_veg(p)-(tfrz+25._r8))/10._r8)
+         end select
 
          if (par_z(p,iv) <= 0._r8) then           ! night time
 
@@ -2833,5 +2955,419 @@ contains
    end do
 
    end subroutine Fractionation
+
+!-------------------------------------------------------------------------------
+!AWKing
+!
+! !IROUTINE: heskel_ref_respiration()
+!
+! !INTERFACE:
+
+    function heskel_ref_respiration(temp_ref, a, b, c)result(r_tref)
+    !
+    !!DESCRIPTION:
+    ! Heskel et al. 2016 PNAS 113 temperature response function
+    !
+    ! !REVISION HISTORY
+    ! Created Anthony W. King April 2018 
+
+!   !USES
+    use clm_varcon, only : tfrz
+
+    implicit none
+
+    !ARGUMENTS   
+    real(8), intent(in) :: temp_ref  ! reference temperature (e.g., 298.15 K (25C))
+    real(8), intent(in) :: a  ! Heskel et al parameter
+    real(8), intent(in) :: b  ! Heskel et al parameter
+    real(8), intent(in) :: c  ! Heskel et al parameter
+
+! !CALLED FROM:
+! subroutine Photosynthesis in this module
+
+! !LOCAL VARIABLES:   
+   
+    real(8) :: t_refC ! reference temperature (C)
+    real(8) :: r_tref ! respiration at reference temperature (umol/m-2/s-1)
+
+    ! convert from K to C
+    t_refC = temp_ref - tfrz
+    r_tref = exp(a + b * t_refC + c * t_refC * t_refC) 
+    return
+    end function heskel_ref_respiration
+
+!-------------------------------------------------------------------------------
+!AWK
+!
+! !IROUTINE: heskel_temp_response()
+!
+! !INTERFACE:
+
+    function heskel_temp_response(temp_ref, b, c, temp)result(t_response)
+    !
+    !!DESCRIPTION:
+    ! Heskel et al. 2016 PNAS 113 temperature response function
+    !
+    ! !REVISION HISTORY
+    ! Created Anthony W. King April 2018 
+
+!   !USES
+    use clm_varcon, only : tfrz
+
+    implicit none
+
+    !ARGUMENTS   
+    real(8), intent(in) :: temp_ref  ! reference temperature (e.g., 298.15 K (25C))
+    real(8), intent(in) :: temp      ! temperature at which to evaluate function (K)
+    real(8), intent(in) :: b  ! Heskel et al parameter
+    real(8), intent(in) :: c  ! Heskel et al parameter
+
+! !CALLED FROM:
+! subroutine Photosynthesis in this module
+
+! !LOCAL VARIABLES:   
+   
+    real(8) :: t_refC ! reference temperature (C)
+    real(8) :: tC     ! temperature (C)
+    real(8) :: t_response ! respiration at reference temperature 
+
+    ! convert from K to C
+    t_refC = temp_ref - tfrz
+    tC = temp - tfrz
+    t_response = exp(b * (tc - t_refC) + c * (tC**2 - t_refC**2)) 
+    return
+    end function heskel_temp_response
+
+!-------------------------------------------------------------------------------
+!AWK
+!
+! !IROUTINE: q10_response()
+!
+! !INTERFACE:
+
+    function q10_response(temp_ref, q10, temp)result(ans)
+    !
+    !!DESCRIPTION:
+    ! simple Q10 temperature response function
+    !
+    ! !REVISION HISTORY
+    ! Created Anthony W. King April 2018 
+
+!   !USES
+    use clm_varcon, only : tfrz
+
+    implicit none
+
+    !ARGUMENTS   
+    real(8), intent(in) :: temp_ref  ! reference temperature (e.g., 298.15 K (25C))
+    real(8), intent(in) :: q10  ! q10 parameter value (e.g., 2.0)
+    real(8), intent(in) :: temp ! temperature value at which function is evaluated (K)
+
+! !CALLED FROM:
+! subroutine Photosynthesis in this module
+
+! !LOCAL VARIABLES:   
+   
+    real(8) :: tempC
+    real(8) :: temp_refC
+    real(8) :: ans        ! temperature response multiplier
+
+    ! convert from K to C
+    tempC = temp - tfrz
+    temp_refC = temp_ref - tfrz
+    ans = q10 ** ((tempC - temp_refC)/10.) 
+    return
+    end function q10_response
+
+!-------------------------------------------------------------------------------
+!AWK
+!
+! !IROUTINE: amthor_rstar()
+!
+! !INTERFACE:
+
+    function amthor_rstar(temp)result(t_response)
+    !
+    !!DESCRIPTION:
+    ! Amthor (unpublished) temperature response function
+    !
+    ! !REVISION HISTORY
+    ! Created Anthony W. King April 2018 
+
+!   !USES
+    use clm_varcon, only : tfrz
+
+    implicit none
+
+    !ARGUMENTS   
+    real(8), intent(in) :: temp      ! temperature at which to evaluate function (K)
+
+! !CALLED FROM:
+! subroutine Photosynthesis in this module
+
+! !LOCAL VARIABLES:   
+   
+    real(8) :: tC     ! temperature (C)
+    real(8) :: t_response ! respiration at reference temperature 
+
+    ! convert from K to C
+    tC = temp - tfrz
+    t_response = exp(((0.11 - 0.00177 * tC) - exp(tC - 53.)) * (tC - 25.))
+    return
+    end function amthor_rstar
+
+!-------------------------------------------------------------------------------
+!AWK
+!
+! !IROUTINE: amthor_rstar_acclim()
+!
+! !INTERFACE:
+
+    function amthor_rstar_acclim(t_ad, t_history, alphar, temp)result(t_response)
+    !
+    !!DESCRIPTION:
+    ! Amthor (unpublished) temperature response function with acclimation
+    !
+    ! !REVISION HISTORY
+    ! Created Anthony W. King April 2018 
+
+!   !USES
+    use clm_varcon, only : tfrz
+
+    implicit none
+
+    !ARGUMENTS   
+    real(8), intent(in) :: t_ad
+    real(8), intent(in) :: t_history
+    real(8), intent(in) :: alphar
+    real(8), intent(in) :: temp      ! temperature at which to evaluate function (K)
+
+! !CALLED FROM:
+! subroutine Photosynthesis in this module
+
+! !LOCAL VARIABLES:   
+   
+    real(8) :: tC        ! temperature (C)
+    real(8) :: t_h       ! recent temperature history
+    real(8) :: t_ac      ! acclimation temperature (C)
+    real(8) :: t_eff
+    real(8) :: t_response ! respiration at reference temperature 
+
+    ! convert from K to C
+    tC = temp - tfrz
+    t_h = t_history + (tC - t_history)*10./100.
+    if (alphar == 0.0) then
+        t_ac = t_ad
+    else
+        t_ac = t_ad + alphar * atan((t_h - t_ad)/alphar)
+    end if
+    t_eff = tC + (t_ad - t_ac)
+    t_response = exp(((0.11 - 0.00177 * t_eff) - exp(tC - 53.)) * (t_eff - 25.))
+    return
+    end function amthor_rstar_acclim
+    
+!-------------------------------------------------------------------------------
+!AWK
+!
+! !IROUTINE: arrhenius
+!
+! !INTERFACE:
+
+   function arrhenius(temp_ref, e_a, temp)result(ans)
+   !
+   !!DESCRIPTION:
+   ! Arrhenius temperature response
+   !
+   ! !REVISION HISTORY
+   ! Created Anthony W. King April 2018
+   
+   !!USES
+   use clm_varcon  , only : rgas, tfrz   
+   implicit none
+   
+   real(8), intent(in) :: temp_ref  ! reference temperature (K)
+   real(8), intent(in) :: temp  ! temperature (K)
+   real(8), intent(in) :: e_a  ! activation energy (J/mol)
+
+! !CALLED FROM:
+! subroutine Photosynthesis in this module
+
+! !LOCAL VARIABLES:   
+   
+   real(8) :: r
+   real(8) :: ans
+   
+   r = rgas * 0.001 ! convert universal gas constant from J K-1 kmol-1 to J mol-1 K-1
+   ans = exp(( e_a / (r*temp_ref)) * (1. - temp_ref/temp))
+   return
+   end function arrhenius 
+
+!-------------------------------------------------------------------------------
+!AWK
+!
+! !IROUTINE: lloydtaylor()
+!
+! !INTERFACE:
+
+    function lloydtaylor(temp_0, e_0, temp)result(ans)
+    !
+    !!DESCRIPTION:
+    ! Lloyd and Taylor 1994 Functional Ecology temperature response function
+    !
+    ! !REVISION HISTORY
+    ! Created Anthony W. King April 2018 
+
+    implicit none
+
+    !ARGUMENTS   
+    real(8), intent(in) :: temp_0  ! reference temperature 
+    real(8), intent(in) :: e_0  ! parameter value
+    real(8), intent(in) :: temp ! temperature value at which function is evaluated (K)
+
+! !CALLED FROM:
+! subroutine Photosynthesis in this module
+
+! !LOCAL VARIABLES:   
+   
+    real(8) :: x
+    real(8) :: ans        ! temperature response multiplier
+
+    temp = max(temp, temp_0+0.01)
+    x = e_0  * ((1./(283.15 - temp_0)) - (1./(temp - temp_0)))
+    ans = exp(x)
+    return
+    end function lloydtaylor
+
+!-------------------------------------------------------------------------------
+!AWK
+!
+! !IROUTINE: variable_q10()
+!
+! !INTERFACE:
+
+    function variable_q10(temp_ref, a, b, temp)result(ans)
+    !
+    !!DESCRIPTION:
+    ! temperature variable Q10 temperature response function
+    !
+    ! !REVISION HISTORY
+    ! Created Anthony W. King April 2018 
+
+!   !USES
+    use clm_varcon, only : tfrz
+
+    implicit none
+
+    !ARGUMENTS   
+    real(8), intent(in) :: temp_ref  ! reference temperature (e.g., 298.15 K (25C))
+    real(8), intent(in) :: a  ! parameter value
+    real(8), intent(in) :: b  ! parameter value
+    real(8), intent(in) :: temp ! temperature value at which function is evaluated (K)
+
+! !CALLED FROM:
+! subroutine Photosynthesis in this module
+
+! !LOCAL VARIABLES:   
+   
+    real(8) :: tempC
+    real(8) :: temp_refC
+    real(8) :: q10
+    real(8) :: ans        ! temperature response multiplier
+
+    ! convert from K to C
+    tempC = temp - tfrz
+    temp_refC = temp_ref - tfrz
+    q10 = a - b * (tempC + temp_refC)/2.0
+    ans = q10 ** ((tempC - temp_refC)/10.) 
+    return
+    end function variable_q10
+
+!-------------------------------------------------------------------------------
+!AWK
+!
+! !IROUTINE: atkin()
+!
+! !INTERFACE:
+
+    function atkin(temp_ref, a, b, temp)result(ans)
+    !
+    !!DESCRIPTION:
+    ! temperature response function following Atkin et al. 2015
+    !
+    ! !REVISION HISTORY
+    ! Created Anthony W. King April 2018 
+
+!   !USES
+    use clm_varcon, only : tfrz
+
+    implicit none
+
+    !ARGUMENTS   
+    real(8), intent(in) :: temp_ref  ! reference temperature (e.g., 298.15 K (25C))
+    real(8), intent(in) :: a  ! parameter value
+    real(8), intent(in) :: b  ! parameter value
+    real(8), intent(in) :: temp ! temperature value at which function is evaluated (K)
+
+! !CALLED FROM:
+! subroutine Photosynthesis in this module
+
+! !LOCAL VARIABLES:   
+   
+    real(8) :: tempC
+    real(8) :: temp_refC
+    real(8) :: q10
+    real(8) :: ans        ! temperature response multiplier
+
+    ! convert from K to C
+    tempC = temp - tfrz
+    temp_refC = temp_ref - tfrz
+    q10 = a - b * tempC
+    ans = q10 ** ((tempC - temp_refC)/10.) 
+    return
+    end function atkin
+
+!-------------------------------------------------------------------------------
+!AWK
+!
+! !IROUTINE: modified_atkin()
+!
+! !INTERFACE:
+
+    function modified_atkin(temp_ref, a, b, temp)result(ans)
+    !
+    !!DESCRIPTION:
+    ! modified temperature response function following Atkin et al. 2015
+    !
+    ! !REVISION HISTORY
+    ! Created Anthony W. King April 2018 
+
+!   !USES
+    use clm_varcon, only : tfrz
+
+    implicit none
+
+    !ARGUMENTS   
+    real(8), intent(in) :: temp_ref  ! reference temperature (e.g., 298.15 K (25C))
+    real(8), intent(in) :: a  ! parameter value
+    real(8), intent(in) :: b  ! parameter value
+    real(8), intent(in) :: temp ! temperature value at which function is evaluated (K)
+
+! !CALLED FROM:
+! subroutine Photosynthesis in this module
+
+! !LOCAL VARIABLES:   
+   
+    real(8) :: tempC
+    real(8) :: temp_refC
+    real(8) :: q10
+    real(8) :: ans        ! temperature response multiplier
+
+    ! convert from K to C
+    tempC = temp - tfrz
+    temp_refC = temp_ref - tfrz
+    q10 = a - b * (tempC - temp_refC)
+    ans = q10 ** ((tempC - temp_refC)/10.) 
+    return
+    end function modified_atkin
 
 end module CanopyFluxesMod
