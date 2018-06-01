@@ -1920,7 +1920,7 @@ contains
 
 !      lmr25top = 2.525e-6_r8 * (1.5_r8 ** ((25._r8 - 20._r8)/10._r8))
       !
-      ! selection of temperature response function
+      ! selection of function
       ! for leaf maintenance respiration at 25C at top of canopy
       ! AWKing May 2018
       select case (resp_temp_function)
