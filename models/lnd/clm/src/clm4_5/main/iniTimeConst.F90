@@ -746,8 +746,8 @@ subroutine iniTimeConst
       pftcon%amthor_temp_ad(m) = amthor_temp_ad(m)
       pftcon%lloydtaylor_t0(m) = lloydtaylor_t0(m)
       pftcon%lloydtaylor_e0(m) = lloydtaylor_e0(m)
-      pftcon%varq10_a(m) = varq10_a(m)
-      pftcon%varq10_b(m) = varq10_b(m)
+      pftcon%vq10_a(m) = vq10_a(m)
+      pftcon%vq10_b(m) = vq10_b(m)
       pftcon%atkin_a(m) = atkin_a(m)
       pftcon%atkin_b(m) = atkin_b(m)
    end do
