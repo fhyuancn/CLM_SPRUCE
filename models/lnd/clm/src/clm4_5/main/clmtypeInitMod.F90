@@ -819,7 +819,7 @@ contains
     pftcon%ffrootcn(:)  = nan
     pftcon%fstemcn(:)   = nan
     ! for selectable maintenance respiration
-    ! AWKing June 2018
+    ! AWKing June 4 2018
     pftcon%lmr_intercept_atkin(:) = nan
     pftcon%arrhenius_ea(:) = nan
     pftcon%heskel_a(:) = nan

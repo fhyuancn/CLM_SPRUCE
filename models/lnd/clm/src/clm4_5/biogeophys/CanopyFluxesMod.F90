@@ -3233,7 +3233,7 @@ contains
     real(8) :: x
     real(8) :: ans        ! temperature response multiplier
 
-    temp_a = max(temp, temp_0+0.01)
+    temp_a = max(temp, temp_0+0.01) ! limit to temp greater than temp0
     x = e_0  * ((1./(283.15 - temp_0)) - (1./(temp_a - temp_0)))
     ans = exp(x)
     return

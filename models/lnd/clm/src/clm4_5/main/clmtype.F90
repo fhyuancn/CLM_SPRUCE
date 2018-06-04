@@ -365,7 +365,7 @@ type, public :: pft_epc_type
    real(r8), pointer :: fstemcn(:)      ! C:N during grain fill; stem
 
    ! parameters for selectable maintenance respiration
-   ! AWKing June 2108
+   ! AWKing June 4 2108
    real(r8), pointer :: lmr_intercept_atkin(:) ! intercept of leaf maint. resp. as in CLM5.0 (umol CO2/m**2/s)
    real(r8), pointer :: arrhenius_ea(:)   ! energy of activation in Arrhenius function (J/mol)
    real(r8), pointer :: heskel_a(:)       ! parameter a in Heskel et al. 2016 temperature response function

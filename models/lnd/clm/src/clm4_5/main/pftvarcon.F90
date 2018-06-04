@@ -69,7 +69,7 @@ module pftvarcon
   real(r8):: smpsc(0:mxpft)       !soil water potential at full stomatal closure (mm)
   real(r8):: fnitr(0:mxpft)       !foliage nitrogen limitation factor (-)
   ! begin new pft parameters for CN code
-  real(r8):: 
+  real(r8):: slatop(0:mxpft)      ! specific leaf area at top of canopy, projected area basis [m^2/gC]
   real(r8):: dsladlai(0:mxpft)    !dSLA/dLAI [m^2/gC]
   real(r8):: leafcn(0:mxpft)      !leaf C:N [gC/gN]
   real(r8):: flnr(0:mxpft)        !fraction of leaf N in Rubisco [no units]

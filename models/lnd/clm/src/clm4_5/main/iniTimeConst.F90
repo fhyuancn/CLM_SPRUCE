@@ -736,7 +736,7 @@ subroutine iniTimeConst
       pftcon%ffrootcn(m)  = ffrootcn(m)
       pftcon%fstemcn(m)   = fstemcn(m)
       ! for selectable maintenance respiration
-      ! AWKing June 2018
+      ! AWKing June 4 2018
       pftcon%lmr_intercept_atkin(m) = lmr_intercept_atkin(m)
       pftcon%arrhenius_ea(m) = arrhenius_ea(m)
       pftcon%heskel_a(m) = heskel_a(m)
