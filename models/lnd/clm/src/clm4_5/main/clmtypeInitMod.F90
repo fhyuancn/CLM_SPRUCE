@@ -754,6 +754,21 @@ contains
     allocate(pftcon%fleafcn(0:numpft))
     allocate(pftcon%ffrootcn(0:numpft))
     allocate(pftcon%fstemcn(0:numpft))
+    ! for selectable maintenance respiration
+    ! AWKing June 2018
+    allocate(pftcon%lmr_intercept_atkin(0:numpft))
+    allocate(pftcon%arrhenius_ea(0:numpft))
+    allocate(pftcon%heskel_a(0:numpft))
+    allocate(pftcon%heskel_b(0:numpft))
+    allocate(pftcon%heskel_c(0:numpft))
+    allocate(pftcon%amthor_alphar(0:numpft))
+    allocate(pftcon%amthor_temp_ad(0:numpft))
+    allocate(pftcon%lloydtaylor_t0(0:numpft))
+    allocate(pftcon%lloydtaylor_e0(0:numpft))
+    allocate(pftcon%vq10_a(0:numpft))
+    allocate(pftcon%vq10_b(0:numpft))
+    allocate(pftcon%atkin_a(0:numpft))
+    allocate(pftcon%atkin_b(0:numpft))
 
     pftcon%noveg(:) = huge(1)
     pftcon%tree(:) = huge(1)
@@ -803,6 +818,21 @@ contains
     pftcon%fleafcn(:)   = nan
     pftcon%ffrootcn(:)  = nan
     pftcon%fstemcn(:)   = nan
+    ! for selectable maintenance respiration
+    ! AWKing June 2018
+    pftcon%lmr_intercept_atkin(:) = nan
+    pftcon%arrhenius_ea(:) = nan
+    pftcon%heskel_a(:) = nan
+    pftcon%heskel_b(:) = nan
+    pftcon%heskel_c(:) = nan
+    pftcon%amthor_alphar(:) = nan
+    pftcon%amthor_temp_ad(:) = nan
+    pftcon%lloydtaylor_t0(:) = nan
+    pftcon%lloydtaylor_e0(:) = nan
+    pftcon%vq10_a(:) = nan
+    pftcon%vq10_b(:) = nan
+    pftcon%atkin_a(:) = nan
+    pftcon%atkin_b(:) = nan
   end subroutine init_pft_ecophys_constants
 
 !------------------------------------------------------------------------

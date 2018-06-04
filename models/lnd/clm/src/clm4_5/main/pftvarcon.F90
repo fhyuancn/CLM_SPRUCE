@@ -69,7 +69,7 @@ module pftvarcon
   real(r8):: smpsc(0:mxpft)       !soil water potential at full stomatal closure (mm)
   real(r8):: fnitr(0:mxpft)       !foliage nitrogen limitation factor (-)
   ! begin new pft parameters for CN code
-  real(r8):: slatop(0:mxpft)      !SLA at top of canopy [m^2/gC]
+  real(r8):: 
   real(r8):: dsladlai(0:mxpft)    !dSLA/dLAI [m^2/gC]
   real(r8):: leafcn(0:mxpft)      !leaf C:N [gC/gN]
   real(r8):: flnr(0:mxpft)        !fraction of leaf N in Rubisco [no units]
@@ -155,6 +155,22 @@ module pftvarcon
   real(r8):: q10_mr
   real(r8):: r_mort
   real(r8):: lwtop_ann
+
+  ! pft parameters for selectable maintenance respiration
+  ! AWKing June 2018
+  real(r8):: lmr_intercept_atkin(0:mxpft) ! intercept of leaf maint. resp. as in CLM5.0 (umol CO2/m**2/s)
+  real(r8):: arrhenius_ea(0:mxpft)   ! energy of activation in Arrhenius function (J/mol)
+  real(r8):: heskel_a(0:mxpft)       ! parameter a in Heskel et al. 2016 temperature response function
+  real(r8):: heskel_b(0:mxpft)       ! parameter b in Heskel et al. 2016 temperature response function
+  real(r8):: heskel_c(0:mxpft)       ! parameter c in Heskel et al. 2016 temperature response function
+  real(r8):: amthor_alphar(0:mxpft)  ! parameter in Amthor (unpublished) temperature response function
+  real(r8):: amthor_temp_ad(0:mxpft) ! temperature to which PFT is adapted in Amthor (unpublished) temperature response function
+  real(r8):: lloydtaylor_t0(0:mxpft) ! T0 parameter in Lloyd and Taylor 1994 temp. response function (K)
+  real(r8):: lloydtaylor_e0(0:mxpft) ! E0 parameter in Lloyd and Taylor 1994 temp. response function (K)
+  real(r8):: vq10_a(0:mxpft)         ! parameter in variable Q10 temperature response function 
+  real(r8):: vq10_b(0:mxpft)         ! parameter in variable Q10 temperature response function 
+  real(r8):: atkin_a(0:mxpft)        ! parameter in Atkin et al. 2015 variable Q10 temperature response function 
+  real(r8):: atkin_b(0:mxpft)        ! parameter in Atkin et al. 2015 variable Q10 temperature response function 
 
   ! pft parameters for CNDV code
   ! from LPJ subroutine pftparameters
@@ -404,6 +420,35 @@ contains
     if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
     call ncd_io('lwtop_ann',lwtop_ann, 'read', ncid, readvar=readv,posNOTonfile=.true.)
     if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading inpft data' )
+
+    ! for selectable maintenance respiration
+    ! AWKing June 2018
+    call ncd_io('lmr_intercept_atkin',lmr_intercept_atkin, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('arrhenius_ea',arrhenius_ea, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('heskel_a',heskel_a, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('heskel_b',heskel_b, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('heskel_c',heskel_c, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('amthor_alphar',amthor_alphar, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('amthor_temp_ad',amthor_temp_ad, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('lloydtaylor_t0',lloydtaylor_t0, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('lloydtaylor_e0',lloydtaylor_e0, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('vq10_a',vq10_a, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('vq10_b',vq10_b, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('atkin_a',atkin_a, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('atkin_b',atkin_b, 'read', ncid, readvar=readv,posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
 
 #if (defined VERTSOILC) || (defined MICROBE)
     call ncd_io('rootprof_beta',rootprof_beta, 'read', ncid, readvar=readv, posNOTonfile=.true.)

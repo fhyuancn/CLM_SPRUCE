@@ -363,6 +363,22 @@ type, public :: pft_epc_type
    real(r8), pointer :: fleafcn(:)      ! C:N during grain fill; leaf
    real(r8), pointer :: ffrootcn(:)     ! C:N during grain fill; froot
    real(r8), pointer :: fstemcn(:)      ! C:N during grain fill; stem
+
+   ! parameters for selectable maintenance respiration
+   ! AWKing June 2108
+   real(r8), pointer :: lmr_intercept_atkin(:) ! intercept of leaf maint. resp. as in CLM5.0 (umol CO2/m**2/s)
+   real(r8), pointer :: arrhenius_ea(:)   ! energy of activation in Arrhenius function (J/mol)
+   real(r8), pointer :: heskel_a(:)       ! parameter a in Heskel et al. 2016 temperature response function
+   real(r8), pointer :: heskel_b(:)       ! parameter b in Heskel et al. 2016 temperature response function
+   real(r8), pointer :: heskel_c(:)       ! parameter c in Heskel et al. 2016 temperature response function
+   real(r8), pointer :: amthor_alphar(:)  ! parameter in Amthor (unpublished) temperature response function
+   real(r8), pointer :: amthor_temp_ad(:) ! temperature to which PFT is adapted in Amthor (unpublished) temperature response function
+   real(r8), pointer :: lloydtaylor_t0(:) ! T0 parameter in Lloyd and Taylor 1994 temp. response function (K)
+   real(r8), pointer :: lloydtaylor_e0(:) ! E0 parameter in Lloyd and Taylor 1994 temp. response function (K)
+   real(r8), pointer :: vq10_a(:)         ! parameter in variable Q10 temperature response function 
+   real(r8), pointer :: vq10_b(:)         ! parameter in variable Q10 temperature response function 
+   real(r8), pointer :: atkin_a(:)        ! parameter in Atkin et al. 2015 variable Q10 temperature response function 
+   real(r8), pointer :: atkin_b(:)        ! parameter in Atkin et al. 2015 variable Q10 temperature response function 
 end type pft_epc_type
 
 type(pft_epc_type), public, target, save :: pftcon

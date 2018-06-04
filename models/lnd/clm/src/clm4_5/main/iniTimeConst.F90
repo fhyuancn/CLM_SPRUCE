@@ -46,6 +46,11 @@ subroutine iniTimeConst
                            allom1 , allom2 , allom3  , reinickerp, dwood
 
   use pftvarcon       , only : fertnitro, graincn, fleafcn, ffrootcn, fstemcn
+  ! for selectable maintenance respiration
+  ! AWKing June 2018
+  use pftvarcon       , only : lmr_intercept_atkin, arrhenius_ea, heskel_a, heskel_b, heskel_c, &
+                               amthor_alphar, amthor_temp_ad, lloydtaylor_t0, lloydtaylor_e0, &
+                               vq10_a, vq10_b, atkin_a, atkin_b
   use clm_time_manager, only : get_step_size
   use abortutils      , only : endrun
   use fileutils       , only : getfil
@@ -730,6 +735,21 @@ subroutine iniTimeConst
       pftcon%fleafcn(m)   = fleafcn(m)
       pftcon%ffrootcn(m)  = ffrootcn(m)
       pftcon%fstemcn(m)   = fstemcn(m)
+      ! for selectable maintenance respiration
+      ! AWKing June 2018
+      pftcon%lmr_intercept_atkin(m) = lmr_intercept_atkin(m)
+      pftcon%arrhenius_ea(m) = arrhenius_ea(m)
+      pftcon%heskel_a(m) = heskel_a(m)
+      pftcon%heskel_b(m) = heskel_b(m)
+      pftcon%heskel_c(m) = heskel_c(m)
+      pftcon%amthor_alphar(m) = amthor_alphar(m)
+      pftcon%amthor_temp_ad(m) = amthor_temp_ad(m)
+      pftcon%lloydtaylor_t0(m) = lloydtaylor_t0(m)
+      pftcon%lloydtaylor_e0(m) = lloydtaylor_e0(m)
+      pftcon%varq10_a(m) = varq10_a(m)
+      pftcon%varq10_b(m) = varq10_b(m)
+      pftcon%atkin_a(m) = atkin_a(m)
+      pftcon%atkin_b(m) = atkin_b(m)
    end do
 
 #ifdef CNDV

@@ -1930,7 +1930,7 @@ contains
          case('clm5.0')
               if ( lnc(p) > 0.0_r8 ) then
                   lmr25top = lmr_intercept_atkin(ivt(p)) + (lnc(p) * 0.2061_r8) - (0.0402_r8 * t10(p)-tfrz)
-              else:
+              else 
                   lmr25top = 0.0_r8
               end if
          case('heskel')
@@ -2004,16 +2004,16 @@ contains
                  trf = q10_response(298.15, q10_mr, t_veg(p))
                  lmr_z(p,iv) = lmr25 * trf
             case('arrhenius')
-                 trf = arrhenius(298.15, arrhenius_ea(ivt(p)), tveg(p))
+                 trf = arrhenius(298.15, arrhenius_ea(ivt(p)), t_veg(p))
                  lmr_z(p,iv) = lmr25 * trf
             case('heskel')
                  trf = heskel_temp_response(298.15, heskel_b(ivt(p)), heskel_c(ivt(p)), t_veg(p))
                  lmr_z(p,iv) = lmr25 * trf
             case('amthor')
-                 trf = amthor_rtar(t_veg(p))
+                 trf = amthor_rstar(t_veg(p))
                  lmr_z(p,iv) = lmr25 * trf
             case('amthor_acclim')
-                 trf = amthor_rtar_acclim(amthor_temp_ad(ivt(p)), t10(p), amthor_alphar(ivt(p)), t_veg(p))
+                 trf = amthor_rstar_acclim(amthor_temp_ad(ivt(p)), t10(p), amthor_alphar(ivt(p)), t_veg(p))
                  lmr_z(p,iv) = lmr25 * trf
             case('lloydtaylor')
                  trf = lloydtaylor(lloydtaylor_t0(ivt(p)), lloydtaylor_e0(ivt(p)), t_veg(p)) / &
@@ -3229,11 +3229,12 @@ contains
 
 ! !LOCAL VARIABLES:   
    
+    real(8) :: temp_a     ! actual temperature
     real(8) :: x
     real(8) :: ans        ! temperature response multiplier
 
-    temp = max(temp, temp_0+0.01)
-    x = e_0  * ((1./(283.15 - temp_0)) - (1./(temp - temp_0)))
+    temp_a = max(temp, temp_0+0.01)
+    x = e_0  * ((1./(283.15 - temp_0)) - (1./(temp_a - temp_0)))
     ans = exp(x)
     return
     end function lloydtaylor
