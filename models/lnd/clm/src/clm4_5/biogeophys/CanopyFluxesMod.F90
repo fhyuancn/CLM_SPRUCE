@@ -33,6 +33,20 @@ module CanopyFluxesMod
    private :: hybrid         !hybrid solver for ci
    private :: ci_func        !ci function
    private :: brent          !brent solver for root of a single variable function
+
+! ! selectable functions for maintenance respiration
+  ! AWKing June 2018
+   private :: heskel_ref_respiration ! leaf maint. resp. at ref. temp (umol CO2/m**2/s)
+   private :: q10_response           ! fixed Q10 temperature response function
+   private :: arrhenius              ! Arrhenius temperature response function
+   private :: heskel_temp_response   ! according to Heskel et al. 2016 PNAS 113
+   private :: amthor_rstar           ! as represented by Amthor (unpublished)
+   private :: amthor_rstar_acclim    ! as represented by Amthor (unpublished) with acclimation
+   private :: lloydtaylor            ! Lloyd and Taylor 1994 Functional Ecology temp. response function
+   private :: variable_q10           ! temperature variable q10 temperature response function
+   private :: atkin                  ! temperature dependent Q10 temp. resp. fnct. following Atkin et al. 2015
+   private :: modified_atkin         ! modified temperature dependent Q10 temp. resp. fnct. following Atkin et al. 2015
+!
 !
 ! !REVISION HISTORY:
 ! Created by Mariana Vertenstein
@@ -1611,16 +1625,6 @@ contains
    ! modified atkin: a slight modification of variable Q10 formulation 
    !
    real(r8) :: trf                    ! temperature response function/factor (0-1.0)
-   real(r8) :: heskel_ref_respiration ! function: leaf maint. resp. at ref. temp (umol CO2/m**2/s)
-   real(r8) :: q10_response           ! fixed Q10 temperature response function
-   real(r8) :: arrhenius              ! Arrhenius temperature response function
-   real(r8) :: heskel_temp_response   ! according to Heskel et al. 2016 PNAS 113
-   real(r8) :: amthor_rstar           ! as represented by Amthor (unpublished)
-   real(r8) :: amthor_rstar_acclim    ! as represented by Amthor (unpublished) with acclimation
-   real(r8) :: lloydtaylor            ! Lloyd and Taylor 1994 Functional Ecology temp. response function
-   real(r8) :: variable_q10           ! temperature variable q10 temperature response function
-   real(r8) :: atkin                  ! temperature dependent Q10 temp. resp. fnct. following Atkin et al. 2015
-   real(r8) :: modified_atkin         ! modified temperature dependent Q10 temp. resp. fnct. following Atkin et al. 2015
 !------------------------------------------------------------------------------
 
    ! Temperature and soil water response functions
@@ -1934,7 +1938,7 @@ contains
                   lmr25top = 0.0_r8
               end if
          case('heskel')
-              lmr25top = heskel_ref_respiration(298.15, heskel_a(ivt(p)), heskel_b(ivt(p)), heskel_c(ivt(p)))
+              lmr25top = heskel_ref_respiration(298.15_r8, heskel_a(ivt(p)), heskel_b(ivt(p)), heskel_c(ivt(p)))
          case default
               lmr25top = br_mr  * (q10_mr ** ((25._r8 - 20._r8)/10._r8))
               lmr25top = lmr25top * lnc(p) / 12.e-06_r8
@@ -2001,13 +2005,13 @@ contains
                     lmr_z(p,iv) = lmr_z(p,iv) / (1._r8 + exp( 1.3_r8*(t_veg(p)-(tfrz+55._r8)) ))
                  end if
             case('q10')
-                 trf = q10_response(298.15, q10_mr, t_veg(p))
+                 trf = q10_response(298.15_r8, q10_mr, t_veg(p))
                  lmr_z(p,iv) = lmr25 * trf
             case('arrhenius')
-                 trf = arrhenius(298.15, arrhenius_ea(ivt(p)), t_veg(p))
+                 trf = arrhenius(298.15_r8, arrhenius_ea(ivt(p)), t_veg(p))
                  lmr_z(p,iv) = lmr25 * trf
             case('heskel')
-                 trf = heskel_temp_response(298.15, heskel_b(ivt(p)), heskel_c(ivt(p)), t_veg(p))
+                 trf = heskel_temp_response(298.15_r8, heskel_b(ivt(p)), heskel_c(ivt(p)), t_veg(p))
                  lmr_z(p,iv) = lmr25 * trf
             case('amthor')
                  trf = amthor_rstar(t_veg(p))
@@ -2020,13 +2024,13 @@ contains
                        lloydtaylor(lloydtaylor_t0(ivt(p)), lloydtaylor_e0(ivt(p)), 298.15_r8)
                  lmr_z(p,iv) = lmr25 * trf
             case('variableq10')
-                 trf = variable_q10(298.15, vq10_a(ivt(p)), vq10_b(ivt(p)), t_veg(p))
+                 trf = variable_q10(298.15_r8, vq10_a(ivt(p)), vq10_b(ivt(p)), t_veg(p))
                  lmr_z(p,iv) = lmr25 * trf
             case('atkin')
-                trf = atkin(298.15, atkin_a(ivt(p)), atkin_b(ivt(p)), t_veg(p))
+                trf = atkin(298.15_r8, atkin_a(ivt(p)), atkin_b(ivt(p)), t_veg(p))
                 lmr_z = lmr25 * trf
             case('modified_atkin')
-                trf = modified_atkin(298.15, atkin_a(ivt(p)), atkin_b(ivt(p)), t_veg(p))
+                trf = modified_atkin(298.15_r8, atkin_a(ivt(p)), atkin_b(ivt(p)), t_veg(p))
                 lmr_z = lmr25 * trf
             case default
                  !Return to simple Q10 relationship
@@ -2963,7 +2967,7 @@ contains
 !
 ! !INTERFACE:
 
-    function heskel_ref_respiration(temp_ref, a, b, c)result(r_tref)
+    real(8) function heskel_ref_respiration(temp_ref, a, b, c)
     !
     !!DESCRIPTION:
     ! Heskel et al. 2016 PNAS 113 temperature response function
@@ -2993,7 +2997,7 @@ contains
     ! convert from K to C
     t_refC = temp_ref - tfrz
     r_tref = exp(a + b * t_refC + c * t_refC * t_refC) 
-    return
+    heskel_ref_respiration = r_tref
     end function heskel_ref_respiration
 
 !-------------------------------------------------------------------------------
@@ -3003,7 +3007,7 @@ contains
 !
 ! !INTERFACE:
 
-    function heskel_temp_response(temp_ref, b, c, temp)result(t_response)
+    real(8) function heskel_temp_response(temp_ref, b, c, temp)
     !
     !!DESCRIPTION:
     ! Heskel et al. 2016 PNAS 113 temperature response function
@@ -3035,7 +3039,7 @@ contains
     t_refC = temp_ref - tfrz
     tC = temp - tfrz
     t_response = exp(b * (tc - t_refC) + c * (tC**2 - t_refC**2)) 
-    return
+    heskel_temp_response = t_response
     end function heskel_temp_response
 
 !-------------------------------------------------------------------------------
@@ -3045,7 +3049,7 @@ contains
 !
 ! !INTERFACE:
 
-    function q10_response(temp_ref, q10, temp)result(ans)
+    real(8) function q10_response(temp_ref, q10, temp)
     !
     !!DESCRIPTION:
     ! simple Q10 temperature response function
@@ -3070,13 +3074,11 @@ contains
    
     real(8) :: tempC
     real(8) :: temp_refC
-    real(8) :: ans        ! temperature response multiplier
 
     ! convert from K to C
     tempC = temp - tfrz
     temp_refC = temp_ref - tfrz
-    ans = q10 ** ((tempC - temp_refC)/10.) 
-    return
+    q10_response = q10 ** ((tempC - temp_refC)/10.) 
     end function q10_response
 
 !-------------------------------------------------------------------------------
@@ -3086,7 +3088,7 @@ contains
 !
 ! !INTERFACE:
 
-    function amthor_rstar(temp)result(t_response)
+    real(8) function amthor_rstar(temp)
     !
     !!DESCRIPTION:
     ! Amthor (unpublished) temperature response function
@@ -3113,7 +3115,7 @@ contains
     ! convert from K to C
     tC = temp - tfrz
     t_response = exp(((0.11 - 0.00177 * tC) - exp(tC - 53.)) * (tC - 25.))
-    return
+    amthor_rstar = t_response
     end function amthor_rstar
 
 !-------------------------------------------------------------------------------
@@ -3123,7 +3125,7 @@ contains
 !
 ! !INTERFACE:
 
-    function amthor_rstar_acclim(t_ad, t_history, alphar, temp)result(t_response)
+    real(8) function amthor_rstar_acclim(t_ad, t_history, alphar, temp)
     !
     !!DESCRIPTION:
     ! Amthor (unpublished) temperature response function with acclimation
@@ -3163,7 +3165,7 @@ contains
     end if
     t_eff = tC + (t_ad - t_ac)
     t_response = exp(((0.11 - 0.00177 * t_eff) - exp(tC - 53.)) * (t_eff - 25.))
-    return
+    amthor_rstar_acclim = t_response
     end function amthor_rstar_acclim
     
 !-------------------------------------------------------------------------------
@@ -3173,7 +3175,7 @@ contains
 !
 ! !INTERFACE:
 
-   function arrhenius(temp_ref, e_a, temp)result(ans)
+   real(8) function arrhenius(temp_ref, e_a, temp)
    !
    !!DESCRIPTION:
    ! Arrhenius temperature response
@@ -3195,11 +3197,9 @@ contains
 ! !LOCAL VARIABLES:   
    
    real(8) :: r
-   real(8) :: ans
    
    r = rgas * 0.001 ! convert universal gas constant from J K-1 kmol-1 to J mol-1 K-1
-   ans = exp(( e_a / (r*temp_ref)) * (1. - temp_ref/temp))
-   return
+   arrhenius = exp(( e_a / (r*temp_ref)) * (1. - temp_ref/temp))
    end function arrhenius 
 
 !-------------------------------------------------------------------------------
@@ -3209,7 +3209,7 @@ contains
 !
 ! !INTERFACE:
 
-    function lloydtaylor(temp_0, e_0, temp)result(ans)
+    real(8) function lloydtaylor(temp_0, e_0, temp)
     !
     !!DESCRIPTION:
     ! Lloyd and Taylor 1994 Functional Ecology temperature response function
@@ -3231,12 +3231,10 @@ contains
    
     real(8) :: temp_a     ! actual temperature
     real(8) :: x
-    real(8) :: ans        ! temperature response multiplier
 
     temp_a = max(temp, temp_0+0.01) ! limit to temp greater than temp0
     x = e_0  * ((1./(283.15 - temp_0)) - (1./(temp_a - temp_0)))
-    ans = exp(x)
-    return
+    lloydtaylor = exp(x)
     end function lloydtaylor
 
 !-------------------------------------------------------------------------------
@@ -3246,7 +3244,7 @@ contains
 !
 ! !INTERFACE:
 
-    function variable_q10(temp_ref, a, b, temp)result(ans)
+    real(8) function variable_q10(temp_ref, a, b, temp)
     !
     !!DESCRIPTION:
     ! temperature variable Q10 temperature response function
@@ -3273,14 +3271,12 @@ contains
     real(8) :: tempC
     real(8) :: temp_refC
     real(8) :: q10
-    real(8) :: ans        ! temperature response multiplier
 
     ! convert from K to C
     tempC = temp - tfrz
     temp_refC = temp_ref - tfrz
     q10 = a - b * (tempC + temp_refC)/2.0
-    ans = q10 ** ((tempC - temp_refC)/10.) 
-    return
+    variable_q10 = q10 ** ((tempC - temp_refC)/10.) 
     end function variable_q10
 
 !-------------------------------------------------------------------------------
@@ -3290,7 +3286,7 @@ contains
 !
 ! !INTERFACE:
 
-    function atkin(temp_ref, a, b, temp)result(ans)
+    real(8) function atkin(temp_ref, a, b, temp)
     !
     !!DESCRIPTION:
     ! temperature response function following Atkin et al. 2015
@@ -3317,14 +3313,12 @@ contains
     real(8) :: tempC
     real(8) :: temp_refC
     real(8) :: q10
-    real(8) :: ans        ! temperature response multiplier
 
     ! convert from K to C
     tempC = temp - tfrz
     temp_refC = temp_ref - tfrz
     q10 = a - b * tempC
-    ans = q10 ** ((tempC - temp_refC)/10.) 
-    return
+    atkin = q10 ** ((tempC - temp_refC)/10.) 
     end function atkin
 
 !-------------------------------------------------------------------------------
@@ -3334,7 +3328,7 @@ contains
 !
 ! !INTERFACE:
 
-    function modified_atkin(temp_ref, a, b, temp)result(ans)
+    real(8) function modified_atkin(temp_ref, a, b, temp)
     !
     !!DESCRIPTION:
     ! modified temperature response function following Atkin et al. 2015
@@ -3361,14 +3355,12 @@ contains
     real(8) :: tempC
     real(8) :: temp_refC
     real(8) :: q10
-    real(8) :: ans        ! temperature response multiplier
 
     ! convert from K to C
     tempC = temp - tfrz
     temp_refC = temp_ref - tfrz
     q10 = a - b * (tempC - temp_refC)
-    ans = q10 ** ((tempC - temp_refC)/10.) 
-    return
+    modified_atkin = q10 ** ((tempC - temp_refC)/10.) 
     end function modified_atkin
 
 end module CanopyFluxesMod
