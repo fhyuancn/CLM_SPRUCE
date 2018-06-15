@@ -3058,7 +3058,6 @@ contains
     ! Created Anthony W. King April 2018 
 
 !   !USES
-    use clm_varcon, only : tfrz
 
     implicit none
 
@@ -3071,14 +3070,8 @@ contains
 ! subroutine Photosynthesis in this module
 
 ! !LOCAL VARIABLES:   
-   
-    real(8) :: tempC
-    real(8) :: temp_refC
 
-    ! convert from K to C
-    tempC = temp - tfrz
-    temp_refC = temp_ref - tfrz
-    q10_response = q10 ** ((tempC - temp_refC)/10.) 
+    q10_response = q10 ** ((temp - temp_ref)/10.) 
     end function q10_response
 
 !-------------------------------------------------------------------------------
