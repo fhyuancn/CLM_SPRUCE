@@ -1611,6 +1611,7 @@ contains
    ! AWKing
    ! variables/functions related to selectable leaf maint. resp.
    character(len=15) :: resp_temp_function = 'q10'
+!   character(len=15) :: resp_temp_function = 'lloydtaylor'
    ! Choices are:
    ! clm4.5: as the default in CLM4.5
    ! clm5.0: as the atkin intercept option in CLM5.0
@@ -1621,7 +1622,7 @@ contains
    ! arrhenius: as classic Arrhenius function
    ! atkin: as represented by Atkin et al. 2015
    ! lloydtaylor: as represented by Lloyd and Taylor
-   ! variable_q10: temperature dependent Q10 as in Heskel et al. 2016 PNAS 113
+   ! variableq10: temperature dependent Q10 as in Heskel et al. 2016 PNAS 113
    ! modified atkin: a slight modification of variable Q10 formulation 
    !
    real(r8) :: trf                    ! temperature response function/factor (0-1.0)
@@ -1933,7 +1934,7 @@ contains
               lmr25top = lmr25top * lnc(p) / 12.e-6_r8
          case('clm5.0')
               if ( lnc(p) > 0.0_r8 ) then
-                  lmr25top = lmr_intercept_atkin(ivt(p)) + (lnc(p) * 0.2061_r8) - (0.0402_r8 * t10(p)-tfrz)
+                  lmr25top = lmr_intercept_atkin(ivt(p)) + (lnc(p) * 0.2061_r8) - (0.0402_r8 * (t10(p)-tfrz))
               else 
                   lmr25top = 0.0_r8
               end if
@@ -2996,7 +2997,7 @@ contains
 
     ! convert from K to C
     t_refC = temp_ref - tfrz
-    r_tref = exp(a + b * t_refC + c * t_refC * t_refC) 
+    r_tref = exp(a + b * t_refC + c * (t_refC * t_refC)) 
     heskel_ref_respiration = r_tref
     end function heskel_ref_respiration
 
@@ -3038,7 +3039,7 @@ contains
     ! convert from K to C
     t_refC = temp_ref - tfrz
     tC = temp - tfrz
-    t_response = exp(b * (tc - t_refC) + c * (tC**2 - t_refC**2)) 
+    t_response = exp(b * (tC - t_refC) + c * (tC**2 - t_refC**2)) 
     heskel_temp_response = t_response
     end function heskel_temp_response
 
@@ -3091,6 +3092,7 @@ contains
 
 !   !USES
     use clm_varcon, only : tfrz
+    use shr_kind_mod       , only : r8 => shr_kind_r8
 
     implicit none
 
@@ -3107,7 +3109,7 @@ contains
 
     ! convert from K to C
     tC = temp - tfrz
-    t_response = exp(((0.11 - 0.00177 * tC) - exp(tC - 53.)) * (tC - 25.))
+    t_response = exp(((0.11_r8 - 0.00177_r8 * tC) - exp(tC - 53._r8)) * (tC - 25._r8))
     amthor_rstar = t_response
     end function amthor_rstar
 
@@ -3128,6 +3130,7 @@ contains
 
 !   !USES
     use clm_varcon, only : tfrz
+    use shr_kind_mod       , only : r8 => shr_kind_r8
 
     implicit none
 
@@ -3142,22 +3145,29 @@ contains
 
 ! !LOCAL VARIABLES:   
    
-    real(8) :: tC        ! temperature (C)
-    real(8) :: t_h       ! recent temperature history
-    real(8) :: t_ac      ! acclimation temperature (C)
+    real(8) :: tC         ! temperature (C)
+    real(8) :: t_historyC ! temperature history (C)
+    real(8) :: t_h        ! recent temperature history
+    real(8) :: delta_t    ! time step length
+    real(8) :: tau        ! time constant characterizing rate of acclimation
+    real(8) :: t_ac       ! acclimation temperature (C)
     real(8) :: t_eff
     real(8) :: t_response ! respiration at reference temperature 
+    
+    delta_t = 1800_r8
+    tau = 900.e03_r8
 
     ! convert from K to C
     tC = temp - tfrz
-    t_h = t_history + (tC - t_history)*10./100.
-    if (alphar == 0.0) then
+    t_historyC = t_history - tfrz
+    t_h = t_history + (tC - t_history)*delta_t/tau
+    if (alphar == 0.0_r8) then
         t_ac = t_ad
     else
         t_ac = t_ad + alphar * atan((t_h - t_ad)/alphar)
     end if
     t_eff = tC + (t_ad - t_ac)
-    t_response = exp(((0.11 - 0.00177 * t_eff) - exp(tC - 53.)) * (t_eff - 25.))
+    t_response = exp(((0.11_r8 - 0.00177_r8 * t_eff) - exp(tC - 53._r8)) * (t_eff - 25._r8))
     amthor_rstar_acclim = t_response
     end function amthor_rstar_acclim
     
@@ -3178,6 +3188,7 @@ contains
    
    !!USES
    use clm_varcon  , only : rgas, tfrz   
+   use shr_kind_mod       , only : r8 => shr_kind_r8
    implicit none
    
    real(8), intent(in) :: temp_ref  ! reference temperature (K)
@@ -3191,8 +3202,8 @@ contains
    
    real(8) :: r
    
-   r = rgas * 0.001 ! convert universal gas constant from J K-1 kmol-1 to J mol-1 K-1
-   arrhenius = exp(( e_a / (r*temp_ref)) * (1. - temp_ref/temp))
+   r = rgas * 0.001_r8 ! convert universal gas constant from J K-1 kmol-1 to J mol-1 K-1
+   arrhenius = exp(( e_a / (r*temp_ref)) * (1._r8 - temp_ref/temp))
    end function arrhenius 
 
 !-------------------------------------------------------------------------------
@@ -3209,7 +3220,8 @@ contains
     !
     ! !REVISION HISTORY
     ! Created Anthony W. King April 2018 
-
+  
+    use shr_kind_mod       , only : r8 => shr_kind_r8
     implicit none
 
     !ARGUMENTS   
@@ -3225,8 +3237,8 @@ contains
     real(8) :: temp_a     ! actual temperature
     real(8) :: x
 
-    temp_a = max(temp, temp_0+0.01) ! limit to temp greater than temp0
-    x = e_0  * ((1./(283.15 - temp_0)) - (1./(temp_a - temp_0)))
+    temp_a = max(temp, temp_0+0.01_r8) ! limit to temp greater than temp0
+    x = e_0  * ((1._r8/(283.15_r8 - temp_0)) - (1._r8/(temp_a - temp_0)))
     lloydtaylor = exp(x)
     end function lloydtaylor
 
@@ -3247,6 +3259,7 @@ contains
 
 !   !USES
     use clm_varcon, only : tfrz
+    use shr_kind_mod       , only : r8 => shr_kind_r8
 
     implicit none
 
@@ -3268,8 +3281,8 @@ contains
     ! convert from K to C
     tempC = temp - tfrz
     temp_refC = temp_ref - tfrz
-    q10 = a - b * (tempC + temp_refC)/2.0
-    variable_q10 = q10 ** ((tempC - temp_refC)/10.) 
+    q10 = a - b * (tempC + temp_refC)/2.0_r8
+    variable_q10 = q10 ** ((tempC - temp_refC)/10._r8) 
     end function variable_q10
 
 !-------------------------------------------------------------------------------
@@ -3289,6 +3302,7 @@ contains
 
 !   !USES
     use clm_varcon, only : tfrz
+    use shr_kind_mod       , only : r8 => shr_kind_r8
 
     implicit none
 
@@ -3311,7 +3325,7 @@ contains
     tempC = temp - tfrz
     temp_refC = temp_ref - tfrz
     q10 = a - b * tempC
-    atkin = q10 ** ((tempC - temp_refC)/10.) 
+    atkin = q10 ** ((tempC - temp_refC)/10._r8) 
     end function atkin
 
 !-------------------------------------------------------------------------------
@@ -3331,6 +3345,7 @@ contains
 
 !   !USES
     use clm_varcon, only : tfrz
+    use shr_kind_mod       , only : r8 => shr_kind_r8
 
     implicit none
 
@@ -3353,7 +3368,7 @@ contains
     tempC = temp - tfrz
     temp_refC = temp_ref - tfrz
     q10 = a - b * (tempC - temp_refC)
-    modified_atkin = q10 ** ((tempC - temp_refC)/10.) 
+    modified_atkin = q10 ** ((tempC - temp_refC)/10._r8) 
     end function modified_atkin
 
 end module CanopyFluxesMod
