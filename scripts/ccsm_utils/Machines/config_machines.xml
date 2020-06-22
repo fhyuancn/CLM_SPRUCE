@@ -586,7 +586,7 @@
 <machine MACH="mesabi">
       <DESC> Mesabi, MSI of U of Minnesota. OS is Linux. Batch system is PBS</DESC>
       <OS>LINUX</OS>
-      <COMPILERS>gnu, intel</COMPILERS>
+      <COMPILERS>gnu</COMPILERS>
       <MPILIBS>mpich</MPILIBS>
       <RUNDIR>/home/grifbake/$CCSMUSER/Model/CLM_SPRUCE/Case/$CASE/run</RUNDIR>
       <EXEROOT>/home/grifbake/$CCSMUSER/Model/CLM_SPRUCE/Case/$CASE/bld</EXEROOT>
